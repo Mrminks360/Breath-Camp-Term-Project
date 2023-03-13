@@ -19,7 +19,7 @@ class BMI:
         self.unith = tk.StringVar()
         self.unitw.set('Enter your weight (Kg)')
         self.unith.set('Enter your height (Cm)')
-
+#test
 
 
 
