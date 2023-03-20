@@ -11,12 +11,31 @@ CREATE_LOGIN_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS logins(
                       UNIQUE(username)) 
                       """
 
+# CREATE_CUSTOMERS_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS customers (
+#                                 first_name text NOT NULL, 
+#                                 last_name text NOT NULL,
+#                                 gender text, 
+#                                 date_of_birth text, 
+#                                 mobile text,
+#                                 address text,
+#                                 city text, 
+#                                 state text, 
+#                                 zipcode text,
+#                                 email text UNIQUE,
+#                                 registration_date text 
+#                                 )
+#                               """
+
+
 CREATE_CUSTOMERS_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS customers (
                                 first_name text NOT NULL, 
                                 last_name text NOT NULL,
                                 gender text, 
                                 date_of_birth text, 
-                                mobile text,
+                                payment text,
+                                family_friends text,
+                                equipment boolean,
+                                forms boolean,
                                 address text,
                                 city text, 
                                 state text, 
@@ -25,7 +44,6 @@ CREATE_CUSTOMERS_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS customers (
                                 registration_date text 
                                 )
                               """
-
 CREATE_PAYMENTS_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS payments(
                               transaction_id integer PRIMARY KEY,
                               email text, 

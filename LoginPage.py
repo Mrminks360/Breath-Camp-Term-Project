@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
+
 """
 ITM 360: Advanced Application Development
 
-Project: Customer Management System
+Project: Gila breath Camp Application
 
-Author: Rachel Z (hzhang@ut.edu)
+Author: Andrew MinksWinberg
 """
 
 
@@ -18,7 +18,7 @@ class LoginPage:
     def __init__(self, master):
         self.master = master
         self.master.geometry("300x180")
-        self.master.title("ITM360 CMS - Login")
+        self.master.title(" Gila - Login")
         
         # variable
         self.username = tk.StringVar()
@@ -67,9 +67,5 @@ class LoginPage:
 if __name__ == "__main__":
 
     root = tk.Tk()
-    
-    # need the azure.tcl file to set the theme
-    #root.tk.call("source", "azure.tcl")
-    #root.tk.call("set_theme", "light")
     LoginPage(root)
     root.mainloop()
