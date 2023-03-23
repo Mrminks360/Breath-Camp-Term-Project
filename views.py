@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan  8 23:22:48 2023
 
-@author: wei10
-"""
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -20,125 +15,120 @@ class RegistrationFrame(ttk.Frame):
         ttk.Label(self, text='Create Page', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
 
-        self.fname = tk.StringVar()
-        self.lname = tk.StringVar()
-        self.gender = tk.StringVar()
-        self.payment = tk.StringVar()
-        self.family_friends = tk.StringVar()
-        self.equipment = tk.BooleanVar()
-        self.forms = tk.BooleanVar()
-        self.address = tk.StringVar()
-        self.city = tk.StringVar()
-        self.state = tk.StringVar()
-        self.zipcode = tk.StringVar()
-        self.email = tk.StringVar()
+        self.CamperID = tk.IntVar()
+        self.FirstName = tk.StringVar()
+        self.LastName = tk.StringVar()
+        self.Birthday = tk.StringVar()
+        self.Gender = tk.StringVar()
+        self.ArrivalDate = tk.StringVar()
+        self.Equipment = tk.BooleanVar()
+        self.DepartureDate = tk.StringVar()
+        self.CompletedForm = tk.BooleanVar()
+        self.CheckedIn = tk.BooleanVar()
+        self.MailingAddress = tk.StringVar()
+        self.Friends = tk.StringVar()
 
         self.create_page()
-        ttk.Button(self, text='Submit', command=self.create_customer_data).pack(side="right", pady=10, padx=5,
-                                                                                anchor=tk.E)
+        ttk.Button(self, text='Submit', command=self.create_camper_data).pack(side="right", pady=10, padx=5,
+                                                                              anchor=tk.E)
         ttk.Button(self, text='Clear', command=self.clear_create_data).pack(side="right", pady=10, padx=5, anchor=tk.E)
 
     def create_page(self):
         self.info = ttk.Frame(self)
         self.info.pack()
 
-        # first row
-        ttk.Label(self.info, text='First Name(*): ', font=("Calibri 12")).grid(row=0, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.fname, width=20).grid(row=0, column=1, pady=5, sticky=tk.W)
+        # First row
+        ttk.Label(self.info, text='CamperID(*): ', font=("Calibri 12")).grid(row=0, column=0, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.CamperID, width=20).grid(row=0, column=1, pady=5, sticky=tk.W)
 
         ttk.Label(self.info, width=5).grid(row=0, column=2)
 
-        ttk.Label(self.info, text='Last Name(*): ', font=("Calibri 12")).grid(row=0, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.lname, width=20).grid(row=0, column=4, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='First Name(*): ', font=("Calibri 12")).grid(row=0, column=3, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.FirstName, width=20).grid(row=0, column=4, pady=5, sticky=tk.W)
 
         # Second Row
-        # gender menu list
-        ttk.Label(self.info, text='Gender(*): ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
-        menu_list = ['', 'Female', 'Male']
-
-        self.gender.set(menu_list[0])
-        field_drop = ttk.OptionMenu(self.info, self.gender, *menu_list)
-        field_drop.config(width=15)
-        field_drop.grid(row=1, column=1, sticky=tk.W)
+        ttk.Label(self.info, text='Last Name(*): ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.LastName, width=20).grid(row=1, column=1, pady=5, sticky=tk.W)
 
         ttk.Label(self.info, width=5).grid(row=1, column=2)
 
-        ttk.Label(self.info, text='Date of Birth: ', font=("Calibri 12")).grid(row=1, column=3, pady=5, sticky=tk.W)
-        # self.dob entry!
-        self.dob = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
-                             bg="darkblue", fg="white",
-                             year=date.today().year)
-        self.dob.delete(0, "end")
-        self.dob.grid(row=1, column=4, sticky=tk.W)
+        # gender menu list
+        ttk.Label(self.info, text='Gender(*): ', font=("Calibri 12")).grid(row=1, column=3, pady=5, sticky=tk.W)
+        menu_list = ['', 'Female', 'Male']
+
+        self.Gender.set(menu_list[0])
+        field_drop = ttk.OptionMenu(self.info, self.Gender, *menu_list)
+        field_drop.config(width=15)
+        field_drop.grid(row=1, column=4, sticky=tk.W)
 
         # Third Row
-        ttk.Label(self.info, text='Email(*)', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.email, width=20).grid(row=2, column=1, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Birthday: ', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
+        self.Birthday = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
+                                  bg="darkblue", fg="white",
+                                  year=date.today().year)
+        self.Birthday.delete(0, "end")
+        self.Birthday.grid(row=2, column=1, sticky=tk.W)
 
         ttk.Label(self.info, width=5).grid(row=2, column=2)
 
-        ttk.Label(self.info, text='Payment(*)', font=("Calibri 12")).grid(row=2, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.payment, width=20).grid(row=2, column=4, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Arrival Date: ', font=("Calibri 12")).grid(row=2, column=3, pady=5, sticky=tk.W)
+        self.ArrivalDate = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
+                                      bg="darkblue", fg="white",
+                                      year=date.today().year)
+        self.ArrivalDate.delete(0, "end")
+        self.ArrivalDate.grid(row=2, column=4, sticky=tk.W)
 
         # Fourth Row
-        ttk.Label(self.info, text='Family & Friends(*)', font=("Calibri 12")).grid(row=3, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.family_friends, width=20).grid(row=3, column=1, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Departure Date: ', font=("Calibri 12")).grid(row=3, column=0, pady=5, sticky=tk.W)
+        self.DepartureDate = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
+                                        bg="darkblue", fg="white",
+                                        year=date.today().year)
+        self.DepartureDate.delete(0, "end")
+        self.DepartureDate.grid(row=3, column=1, sticky=tk.W)
 
         ttk.Label(self.info, width=5).grid(row=3, column=2)
 
-        ttk.Label(self.info, text='Equipment(*): ', font=("Calibri 12")).grid(row=3, column=3, pady=5, sticky=tk.W)
-        ttk.Checkbutton(self.info, variable=self.equipment, onvalue=True, offvalue=False).grid(row=3, column=4, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Mailing Address: ', font=("Calibri 12")).grid(row=3, column=3, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.MailingAddress, width=20).grid(row=3, column=4, pady=5, sticky=tk.W)
 
         # Fifth Row
-        ttk.Label(self.info, text='Forms(*): ', font=("Calibri 12")).grid(row=4, column=0, pady=5, sticky=tk.W)
-        ttk.Checkbutton(self.info, variable=self.forms, onvalue=True, offvalue=False).grid(row=4, column=1, pady=5, sticky=tk.W)
-
-        ttk.Label(self.info, width=5).grid(row=4, column=2)
-
-        ttk.Label(self.info, text='Address', font=("Calibri 12")).grid(row=4, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.address, width=20).grid(row=4, column=4, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Friends: ', font=("Calibri 12")).grid(row=4, column=0, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.Friends, width=20).grid(row=4, column=1, pady=5, sticky=tk.W)
 
         # Sixth Row
-        ttk.Label(self.info, text='City ', font=("Calibri 12")).grid(row=5, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.city, width=20).grid(row=5, column=1, pady=5, sticky=tk.W)
-
-        ttk.Label(self.info, width=5).grid(row=5, column=2)
-
-        ttk.Label(self.info, text='State: ', font=("Calibri 12")).grid(row=5, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.state, width=20).grid(row=5, column=4, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Forms: ', font=("Calibri 12")).grid(row=5, column=0, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.CompletedForm, onvalue=True, offvalue=False).grid(row=5, column=1, pady=5, sticky=tk.W)
 
         # Seventh Row
-        ttk.Label(self.info, text='Zipcode', font=("Calibri 12")).grid(row=6, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.zipcode, width=20).grid(row=6, column=1, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Equipment: ', font=("Calibri 12")).grid(row=6, column=0, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.Equipment, onvalue=True, offvalue=False).grid(row=6, column=1, pady=5, sticky=tk.W)
 
-    def create_customer_data(self):
+    def create_camper_data(self):
         db = DatabaseUti()
         today = str(date.today())
-        required_values = [self.fname.get(), self.lname.get(), self.gender.get(),
-                           self.payment.get(), self.family_friends.get()]
+        required_values = [self.FirstName.get(), self.LastName.get(), self.Gender.get()]
 
-        values = (self.fname.get(), self.lname.get(), self.gender.get(),
-                  self.dob.get(), self.payment.get(), self.family_friends.get(),
-                  self.equipment.get(), self.forms.get(), self.address.get(),
-                  self.city.get(), self.state.get(), self.zipcode.get(),
-                  self.email.get(), today)
+        values = (self.CamperID.get(), self.FirstName.get(), self.LastName.get(), self.Birthday.get_date(), self.Gender.get(),
+                self.ArrivalDate.get_date(), self.Equipment.get(), self.DepartureDate.get_date(),
+                self.CompletedForm.get(), self.CheckedIn.get(), self.MailingAddress.get(),
+                self.Friends.get())
 
         if '' in required_values:
             tk.messagebox.showerror('Warning!',
                                     "Please complete all the required information")
         else:
-            status = db.insert_one_record("customers", values)
+            status = db.insert_one_record("campers", values)
             if status == False:
                 tk.messagebox.showerror('Error!',
-                                        "This email address is already registered")
+                                        "This Camper is already registered")
                 self.clear_create_data()
             else:
                 tk.messagebox.showinfo('Successful!',
-                                       "The customer has been successfully registered")
+                                    "The Camper has been successfully registered")
                 self.clear_create_data()
 
+
     def clear_create_data(self):
-        self.fname.set('')
         self.fname.set('')
         self.lname.set('')
         self.gender.set('')
@@ -147,11 +137,15 @@ class RegistrationFrame(ttk.Frame):
         self.equipment.set(False)
         self.forms.set(False)
         self.dob.delete(0, "end")
+        self.arrival_date.delete(0, "end")
+        self.departure_date.delete(0, "end")
+        self.checked_in.set(False)
         self.address.set('')
         self.city.set('')
         self.state.set('')
         self.zipcode.set('')
-        self.email.set('')
+
+        
 
 
 class UpdateFrame(ttk.Frame):
