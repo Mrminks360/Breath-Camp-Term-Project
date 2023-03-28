@@ -11,7 +11,7 @@ import tkinter as tk
 from tkinter import ttk
 from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame
 from styles import TTK_THEME, COLOR_THEME
-import ttkthemes as ttkth
+
 
 class MainPage:
     def __init__(self, master):

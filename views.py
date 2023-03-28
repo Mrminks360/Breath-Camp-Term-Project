@@ -2,7 +2,6 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-import ttkthemes as ttkth 
 from db import DatabaseUti
 from tkcalendar import Calendar, DateEntry
 from datetime import date
