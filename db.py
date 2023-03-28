@@ -58,17 +58,21 @@ class DatabaseUti:
         conn = self.create_connection()
         c = conn.cursor()
         try:
-            c.execute("""INSERT INTO %s VALUES %s""" %(table_name, values))
+            placeholders = ', '.join(['?'] * len(values))
+            c.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", values)
             conn.commit()
             conn.close()
+            return True  # Record successfully inserted
         except Exception as e:
             print(e)
-            return False
+            return False  # Error occurred, record not inserted
+
+
     
     
     def insert_many_records(self, table_name, value_list):
         if table_name in ["camper", "invoice", "bunkhouse", "tribe"]:
-            place_holder = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            place_holder = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         elif table_name == "camper_bunkhouse":
             place_holder = "(?, ?, ?, ?)"
         elif table_name == "camper_tribe":

@@ -11,13 +11,13 @@ import tkinter as tk
 from tkinter import ttk
 from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame
 from styles import TTK_THEME, COLOR_THEME
-
+import ttkthemes as ttkth
 
 class MainPage:
     def __init__(self, master):
 
         self.master = master
-        self.master.geometry("600x420")
+        self.master.geometry("900x500")
         self.master.title("ITM360  - Gila Breath Camp  v1.0.0")
         
         # initialize the page
@@ -56,5 +56,5 @@ class MainPage:
         
 if __name__ == '__main__':
     root = tk.Tk()
-    MainPage(root)
+    app = MainPage(root)
     root.mainloop()

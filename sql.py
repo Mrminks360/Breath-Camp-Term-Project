@@ -5,27 +5,37 @@ Created on Fri Feb 17 09:25:07 2023
 @author: Andrew Minks
 """
 
+# Login 
+CREATE_LOGIN_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS logins(
+                      username text, 
+                      password text,
+                      UNIQUE(username)) 
+                      """
+
+
+########
+########
+#TABLES
 CREATE_CAMPER_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS camper (
-    CamperID INTEGER PRIMARY KEY,
-    FirstName TEXT NOT NULL,
-    LastName TEXT NOT NULL,
-    Birthday DATE NOT NULL,
-    Gender TEXT NOT NULL,
-    ArrivalDate DATE NOT NULL,
-    Equipment TEXT,
-    DepartureDate DATE NOT NULL,
-    CompletedForm BOOLEAN NOT NULL,
-    CheckedIn BOOLEAN NOT NULL,
-    MailingAddress TEXT NOT NULL,
-    Friends INTEGER,
-    FOREIGN KEY (Friends) REFERENCES camper (CamperID)
+    CamperID INTEGER PRIMARY KEY AUTOINCREMENT,
+    FirstName TEXT,
+    LastName TEXT,
+    Birthday DATE,
+    Gender TEXT,
+    ArrivalDate DATE,
+    Equipment BOOLEAN,
+    DepartureDate DATE,
+    CompletedForm BOOLEAN,
+    CheckedIn BOOLEAN,
+    MailingAddress TEXT,
+    Friends TEXT
 );
 """
 
 CREATE_INVOICE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS invoice (
-    InvoiceID INTEGER PRIMARY KEY,
+    InvoiceID INTEGER PRIMARY KEY AUTOINCREMENT,
     CamperID INTEGER NOT NULL,
     Amount REAL NOT NULL,
     Paid BOOLEAN NOT NULL,
@@ -36,11 +46,23 @@ CREATE TABLE IF NOT EXISTS invoice (
 
 CREATE_BUNKHOUSE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS bunkhouse (
-    BunkhouseID INTEGER PRIMARY KEY,
+    BunkhouseID INTEGER PRIMARY KEY AUTOINCREMENT,
     BunkhouseName TEXT NOT NULL,
     BunkhouseLocation TEXT NOT NULL
 );
 """
+
+CREATE_TRIBE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS tribe (
+    TribeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    TribeName TEXT NOT NULL,
+    TribeLocation TEXT NOT NULL
+);
+"""
+
+########
+########
+#Bridge Tables
 
 CREATE_CAMPER_BUNKHOUSE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS camper_bunkhouse (
@@ -51,14 +73,6 @@ CREATE TABLE IF NOT EXISTS camper_bunkhouse (
     PRIMARY KEY (CamperID, BunkhouseID),
     FOREIGN KEY (CamperID) REFERENCES camper (CamperID),
     FOREIGN KEY (BunkhouseID) REFERENCES bunkhouse (BunkhouseID)
-);
-"""
-
-CREATE_TRIBE_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS tribe (
-    TribeID INTEGER PRIMARY KEY,
-    TribeName TEXT NOT NULL,
-    TribeLocation TEXT NOT NULL
 );
 """
 
@@ -73,66 +87,3 @@ CREATE TABLE IF NOT EXISTS camper_tribe (
     FOREIGN KEY (TribeID) REFERENCES tribe (TribeID)
 );
 """
-
-CREATE_LOGIN_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS logins(
-                      username text, 
-                      password text,
-                      UNIQUE(username)) 
-                      """
-########
-
-
-
-
-
-# CREATE_CAMPER_TABLE_SQL = """
-# CREATE TABLE IF NOT EXISTS camper (
-#     CamperID INTEGER PRIMARY KEY AUTO_INCREMENT,
-#     FirstName TEXT NOT NULL,
-#     LastName TEXT NOT NULL,
-#     Birthday DATE NOT NULL,
-#     Gender TEXT NOT NULL,
-#     ArrivalDate DATE NOT NULL,
-#     Equipment TEXT,
-#     DepartureDate DATE NOT NULL,
-#     CompletedForm BOOLEAN NOT NULL,
-#     CheckedIn BOOLEAN NOT NULL,
-#     MailingAddress TEXT NOT NULL,
-#     Friends INTEGER,
-#     FOREIGN KEY (Friends) REFERENCES camper (CamperID)
-# );
-# """
-
-# CREATE_INVOICE_TABLE_SQL = """
-# CREATE TABLE IF NOT EXISTS invoice (
-#     InvoiceID INTEGER PRIMARY KEY AUTO_INCREMENT,
-#     CamperID INTEGER NOT NULL,
-#     Amount REAL NOT NULL,
-#     Paid BOOLEAN NOT NULL,
-#     PaymentDate DATE NOT NULL,
-#     FOREIGN KEY (CamperID) REFERENCES camper (CamperID)
-# );
-# """
-
-# CREATE_BUNKHOUSE_TABLE_SQL = """
-# CREATE TABLE IF NOT EXISTS bunkhouse (
-#     BunkhouseID INTEGER PRIMARY KEY AUTO_INCREMENT,
-#     BunkhouseName TEXT NOT NULL,
-#     BunkhouseLocation TEXT NOT NULL
-# );
-# """
-
-# CREATE_TRIBE_TABLE_SQL = """
-# CREATE TABLE IF NOT EXISTS tribe (
-#     TribeID INTEGER PRIMARY KEY AUTO_INCREMENT,
-#     TribeName TEXT NOT NULL,
-#     TribeLocation TEXT NOT NULL
-# );
-# """
-
-# CREATE_LOGIN_TABLE_SQL = """
-# CREATE TABLE IF NOT EXISTS logins (
-#     username TEXT NOT NULL UNIQUE,
-#     password TEXT NOT NULL
-# );
-# """
