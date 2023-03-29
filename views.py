@@ -99,7 +99,6 @@ class RegistrationFrame(ttk.Frame):
 
     def create_camper_data(self):
         db = DatabaseUti()
-        today = str(date.today())
         required_values = [self.FirstName.get(), self.LastName.get(), self.Birthday.get_date()]
 
         # Check if any required fields are empty
