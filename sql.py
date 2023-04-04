@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 Created on Fri Feb 17 09:25:07 2023
@@ -29,17 +30,17 @@ CREATE TABLE IF NOT EXISTS camper (
     CompletedForm BOOLEAN,
     CheckedIn BOOLEAN,
     MailingAddress TEXT,
-    Friends TEXT
+    Friends TEXT NULL
 );
 """
 
 CREATE_INVOICE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS invoice (
     InvoiceID INTEGER PRIMARY KEY AUTOINCREMENT,
-    CamperID INTEGER NOT NULL,
-    Amount REAL NOT NULL,
-    Paid BOOLEAN NOT NULL,
-    PaymentDate DATE NOT NULL,
+    CamperID INTEGER,
+    Amount REAL,
+    Paid BOOLEAN,
+    PaymentDate DATE,
     FOREIGN KEY (CamperID) REFERENCES camper (CamperID)
 );
 """
@@ -47,16 +48,17 @@ CREATE TABLE IF NOT EXISTS invoice (
 CREATE_BUNKHOUSE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS bunkhouse (
     BunkhouseID INTEGER PRIMARY KEY AUTOINCREMENT,
-    BunkhouseName TEXT NOT NULL,
-    BunkhouseLocation TEXT NOT NULL
+    BunkhouseName TEXT,
+    BunkhouseLocation TEXT,
+    BunkhouseGender TEXT
 );
 """
 
 CREATE_TRIBE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS tribe (
     TribeID INTEGER PRIMARY KEY AUTOINCREMENT,
-    TribeName TEXT NOT NULL,
-    TribeLocation TEXT NOT NULL
+    TribeName TEXT,
+    TribeLocation TEXT
 );
 """
 
@@ -66,11 +68,11 @@ CREATE TABLE IF NOT EXISTS tribe (
 
 CREATE_CAMPER_BUNKHOUSE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS camper_bunkhouse (
-    CamperID INTEGER NOT NULL,
-    BunkhouseID INTEGER NOT NULL,
-    BunkhouseCapacity INTEGER NOT NULL,
-    BunkhouseGender TEXT NOT NULL,
-    PRIMARY KEY (CamperID, BunkhouseID),
+    CamperBunkhouseID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CamperID INTEGER,
+    BunkhouseID INTEGER,
+    BunkhouseUseStartDate DATE,
+    BunkhouseUseEndDate DATE,
     FOREIGN KEY (CamperID) REFERENCES camper (CamperID),
     FOREIGN KEY (BunkhouseID) REFERENCES bunkhouse (BunkhouseID)
 );
@@ -78,11 +80,11 @@ CREATE TABLE IF NOT EXISTS camper_bunkhouse (
 
 CREATE_CAMPER_TRIBE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS camper_tribe (
-    CamperID INTEGER NOT NULL,
-    TribeID INTEGER NOT NULL,
-    TribeCapacity INTEGER NOT NULL,
-    TribeGenderRatio TEXT NOT NULL,
-    PRIMARY KEY (CamperID, TribeID),
+    CamperTribeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    CamperID INTEGER,
+    TribeID INTEGER,
+    TribeUseStartDate DATE,
+    TribeUseEndDate DATE,
     FOREIGN KEY (CamperID) REFERENCES camper (CamperID),
     FOREIGN KEY (TribeID) REFERENCES tribe (TribeID)
 );
