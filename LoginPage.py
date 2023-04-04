@@ -41,8 +41,6 @@ class LoginPage:
         ttk.Button(self.page, text= 'Login', command = self.login_btn).grid(row = 3, column=1, pady = 10)
         ttk.Button(self.page, text = 'Exit', command = self.master.destroy).grid(row = 3, column = 2)
         
-
-
     def login_btn(self):
         #if self.username.get() == "admin" and self.password.get() == "1234":
          #   print("login successful!")     # until not talking about the datamodel
@@ -61,8 +59,6 @@ class LoginPage:
                                    message = "Login failure. \nPlease try again")
             self.username.set("")
             self.password.set("")
-
-
 
 if __name__ == "__main__":
 
