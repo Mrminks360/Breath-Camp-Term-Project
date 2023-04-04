@@ -4,7 +4,7 @@ ITM 360: Advanced Application Development
 
 Project: Gila breath Camp Application
 
-Author: Andrew MinksWinberg
+Author: Andrew MinksWinberg jjj
 """
 
 import tkinter as tk
