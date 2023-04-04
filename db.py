@@ -237,7 +237,7 @@ class DatabaseUti:
 
 db = DatabaseUti()
 
-# Recreate database
+#  To Recreate database move the data from the data folder into the same folder as db.py or copy the path and put into the functions below.
 # db.insert_one_record("logins", ("admin", "1234"))
 # db.insert_camper_data_from_file("FemaleCampers.txt")
 # db.insert_camper_data_from_file("MaleCampers.txt")
