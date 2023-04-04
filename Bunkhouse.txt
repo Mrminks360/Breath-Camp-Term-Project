@@ -1,0 +1,6 @@
+Pinecone Palace;A;Male
+Maple Grove Lodge;B;Male
+Cedar Crest Cabin;C;Male
+Willow Woods Retreat;D;Female
+Oak Hollow Hideaway;E;Female
+Aspen Meadows Manor;F;Female

@@ -9,7 +9,7 @@ Author: Andrew MinksWinberg
 
 import tkinter as tk
 from tkinter import ttk
-from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame
+from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame,CheckinFrame
 from styles import TTK_THEME, COLOR_THEME
 
 
@@ -38,7 +38,7 @@ class MainPage:
         self.registration_frame = RegistrationFrame(self.notebook)
         self.notebook.add(self.registration_frame, text="Registration")
 
-        self.checkin_frame = UpdateFrame(self.notebook)
+        self.checkin_frame = CheckinFrame(self.notebook)
         self.notebook.add(self.checkin_frame, text="Check-In")
 
         self.assignment_frame = PaymentFrame(self.notebook)
