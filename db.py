@@ -14,8 +14,7 @@ from datetime import date
 from sql import (CREATE_CAMPER_TABLE_SQL, CREATE_INVOICE_TABLE_SQL, CREATE_BUNKHOUSE_TABLE_SQL,
                  CREATE_CAMPER_BUNKHOUSE_TABLE_SQL, CREATE_TRIBE_TABLE_SQL, CREATE_CAMPER_TRIBE_TABLE_SQL,
                  CREATE_LOGIN_TABLE_SQL)
-from datetime import date
-
+from datetime import datetime, date, timedelta
 
 class DatabaseUti:
     def __init__(self, db_name = "Gila.db"):
@@ -233,6 +232,66 @@ class DatabaseUti:
                     print(e)
         conn.commit()
         conn.close()
+
+    def query_camper_info(self):
+        conn = self.create_connection()
+        c = conn.cursor()
+        try:
+            c.execute("SELECT CamperID, Gender, Birthday FROM camper")
+            result = c.fetchall()
+            conn.close()
+            return result
+        except Exception as e:
+            print(e)
+
+    def compute_age(birthday):
+        # Convert the birthday string to a datetime object
+        birthdate = datetime.strptime(birthday, '%Y-%m-%d').date()
+
+        # Compute the age based on the current date and the birthdate
+        today = date.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        return age        
+    
+    def insert_camper_bunkhouse(self):
+        # Get camper info from the database
+        camper_info = self.query_camper_info()
+
+        # Sort the campers by age and gender
+        sorted_campers = sorted(camper_info, key=lambda camper: (DatabaseUti.compute_age(camper[2]), camper[1]))
+
+        # Divide the campers into female and male lists
+        female_campers = [camper[0] for camper in sorted_campers if camper[1] == "Female"]
+        male_campers = [camper[0] for camper in sorted_campers if camper[1] == "Male"]
+
+        # Insert campers into the camper_bunkhouse table
+        with self.create_connection() as conn:
+            cur = conn.cursor()
+
+            # Insert male campers into bunkhouses 1-3
+            for i, camper_id in enumerate(male_campers):
+                bunkhouse_id = i % 3 + 1
+                cur.execute("INSERT INTO camper_bunkhouse (CamperID, BunkhouseID, BunkhouseUseStartDate, BunkhouseUseEndDate) VALUES (?, ?, ?, ?)",
+                            (camper_id, bunkhouse_id, "2023-07-01", "2023-07-15"))
+
+            # Insert female campers into bunkhouses 4-6
+            for i, camper_id in enumerate(female_campers):
+                bunkhouse_id = i % 3 + 4
+                cur.execute("INSERT INTO camper_bunkhouse (CamperID, BunkhouseID, BunkhouseUseStartDate, BunkhouseUseEndDate) VALUES (?, ?, ?, ?)",
+                            (camper_id, bunkhouse_id, "2023-07-01", "2023-07-15"))
+  
+    def get_bunkhouse_assignments(self, bunkhouse_id):
+            with self.create_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT c.CamperID, c.FirstName, c.LastName, c.Birthday, c.Gender
+                    FROM camper c
+                    JOIN camper_bunkhouse cb ON c.CamperID = cb.CamperID
+                    WHERE cb.BunkhouseID = ?
+                    """, (bunkhouse_id,))
+                records = cur.fetchall()
+            return records
+
 
 
 db = DatabaseUti()
