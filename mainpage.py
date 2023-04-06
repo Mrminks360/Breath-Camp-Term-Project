@@ -9,7 +9,7 @@ Author: Andrew MinksWinberg
 
 import tkinter as tk
 from tkinter import ttk
-from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame,CheckinFrame
+from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame,CheckinFrame, AssignmentFrame
 from styles import TTK_THEME, COLOR_THEME
 
 
@@ -41,7 +41,7 @@ class MainPage:
         self.checkin_frame = CheckinFrame(self.notebook)
         self.notebook.add(self.checkin_frame, text="Check-In")
 
-        self.assignment_frame = PaymentFrame(self.notebook)
+        self.assignment_frame = AssignmentFrame(self.notebook)
         self.notebook.add(self.assignment_frame, text="Assignment")
 
         self.payment_frame = SearchFrame(self.notebook)
