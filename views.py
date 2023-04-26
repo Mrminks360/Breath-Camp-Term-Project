@@ -1,10 +1,11 @@
 
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, Label, BOTTOM
 from db import DatabaseUti
 from tkcalendar import Calendar, DateEntry
 from datetime import date
+from PIL import ImageTk, Image
 
 
 class RegistrationFrame(ttk.Frame):
@@ -578,5 +579,12 @@ class AboutFrame(ttk.Frame):
         ttk.Label(self, text = 'About Page', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
         ttk.Label(self, text = 'About Product: Created by Tkinter').pack()
-        ttk.Label(self, text = 'About Author: Rachel Z').pack()
+        ttk.Label(self, text = 'About Author: Maison Anderson, Andrew Minkswinberg, Santiago Londono, Jamal Warren-March').pack()
         ttk.Label(self, text = "All Rights Reserved for the use of UT ITM360").pack()
+        image_file = Image.open(r"C:\Users\SantiagoLondono\OneDrive - 360 Advanced, Inc\VIP\UT\ITM 360\Logo.JPG")
+        resized_image = image_file.resize((300, 300))
+        tk_image = ImageTk.PhotoImage(resized_image)
+        image_label = Label(self, image=tk_image)
+        image_label.pack(side=BOTTOM)
+
+
