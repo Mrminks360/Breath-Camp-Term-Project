@@ -292,6 +292,16 @@ class DatabaseUti:
                 records = cur.fetchall()
             return records
 
+    def check_availability(self, arrival_date, departure_date, gender):
+        # Check the number of campers within the given arrival and departure dates
+        conditions = f"ArrivalDate <= '{departure_date}' AND DepartureDate >= '{arrival_date}' AND Gender = '{gender}'"
+        result = self.query_table_with_condition("camper", "COUNT(*)", conditions)
+
+        # Check if there are available slots
+        if result and result[0][0] < 36:
+            return True
+        else:
+            return False
 
 
 db = DatabaseUti()
