@@ -4,8 +4,54 @@ from db import DatabaseUti
 from tkcalendar import Calendar, DateEntry
 from datetime import date, datetime
 
+import tkinter as tk
 
 class RegistrationFrame(ttk.Frame):
+
+    def __init__(self, master):
+        super().__init__(master)
+
+        # Create a canvas and a scrollbar
+        self.canvas = tk.Canvas(self)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+
+        # Set the canvas to scroll the scrollable_frame
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        # Pack the canvas and the scrollbar
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+
+        # Add the contents to the scrollable_frame
+        ttk.Label(self.scrollable_frame).pack()
+        ttk.Label(self.scrollable_frame, text='Camper Registration and Management', font=("Bahnschrift", 16)).pack()
+        ttk.Label(self.scrollable_frame).pack()
+
+        # Create the search table
+        self.checkin_frame = CheckinFrame(self.scrollable_frame)
+        self.checkin_frame.pack()
+
+        # Create the notebook (tabs)
+        self.notebook = ttk.Notebook(self.scrollable_frame)
+        self.notebook.pack(pady=10, padx=10, expand=True)
+
+        # Create the tabs
+        self.register_tab = RegisterCamper(self.notebook)
+        self.update_tab = UpdateCamper(self.notebook)
+
+        # Add tabs to the notebook
+        self.notebook.add(self.register_tab, text='Register Camper')
+        self.notebook.add(self.update_tab, text='Update Camper')
+
+class RegisterCamper(ttk.Frame):
 
     def __init__(self, master):
         super().__init__(master)
@@ -112,19 +158,25 @@ class RegistrationFrame(ttk.Frame):
                                         "This Camper is already registered")
                 self.clear_create_data()
             else:
-                # Insert new camper data into the table
-                values = (None, self.FirstName.get(), self.LastName.get(), self.Birthday.get_date(), self.Gender.get(),
-                        self.ArrivalDate.get_date(), self.Equipment.get(), self.DepartureDate.get_date(),
-                        self.CompletedForm.get(), self.CheckedIn.get(), self.MailingAddress.get(),
-                        self.Friends.get())
-                status = db.insert_one_record("camper", values)
-                if status == False:
-                    tk.messagebox.showerror('Error!',
-                                            "Failed to register Camper")
-                    self.clear_create_data()
+                # Check if there are available slots for the new camper
+                if db.check_availability(self.ArrivalDate.get_date(), self.DepartureDate.get_date(), self.Gender.get()):
+                    # Insert new camper data into the table
+                    values = (None, self.FirstName.get(), self.LastName.get(), self.Birthday.get_date(), self.Gender.get(),
+                            self.ArrivalDate.get_date(), self.Equipment.get(), self.DepartureDate.get_date(),
+                            self.CompletedForm.get(), self.CheckedIn.get(), self.MailingAddress.get(),
+                            self.Friends.get())
+                    status = db.insert_one_record("camper", values)
+                    if status == False:
+                        tk.messagebox.showerror('Error!',
+                                                "Failed to register Camper")
+                        self.clear_create_data()
+                    else:
+                        tk.messagebox.showinfo('Successful!',
+                                            "The Camper has been successfully registered")
+                        self.clear_create_data()
                 else:
-                    tk.messagebox.showinfo('Successful!',
-                                        "The Camper has been successfully registered")
+                    tk.messagebox.showerror('Error!',
+                                            "No available slots for the selected dates")
                     self.clear_create_data()
 
 
@@ -142,11 +194,176 @@ class RegistrationFrame(ttk.Frame):
         self.MailingAddress.set('')
         self.Friends.set('')
 
-class CheckinFrame(ttk.Frame):
+class UpdateCamper(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         ttk.Label(self).pack()
-        ttk.Label(self, text='Checkin Page', font=("Bahnschrift", 16)).pack()
+        ttk.Label(self, text='Camper Information', font=("Bahnschrift", 16)).pack()
+        ttk.Label(self).pack()
+
+        
+        self.FirstName = tk.StringVar()
+        self.LastName = tk.StringVar()
+        self.Birthday = tk.StringVar()
+        self.Gender = tk.StringVar()
+        self.ArrivalDate = tk.StringVar()
+        self.Equipment = tk.BooleanVar()
+        self.DepartureDate = tk.StringVar()
+        self.CompletedForm = tk.BooleanVar()
+        self.CheckedIn = tk.BooleanVar()
+        self.MailingAddress = tk.StringVar()
+        self.Friends = tk.StringVar()
+        self.CamperID = tk.StringVar()
+
+        self.create_page()
+        ttk.Button(self, text='Submit', command=self.update_camper_data).pack(side="right", pady=10, padx=5,
+                                                                              anchor=tk.E)
+        ttk.Button(self, text='Clear', command=self.clear_create_data).pack(side="right", pady=10, padx=5, anchor=tk.E)
+
+    def create_page(self):
+        self.info = ttk.Frame(self)
+        self.info.pack()
+
+        ttk.Label(self.info, text='Camper ID(*): ', font=("Calibri 12")).grid(row=0, column=0, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.CamperID, width=20).grid(row=0, column=1, pady=5, sticky=tk.W)
+        
+        # First row
+        ttk.Label(self.info, text='First Name(*): ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.FirstName, width=20).grid(row=1, column=1, pady=5, sticky=tk.W)
+
+        ttk.Label(self.info, text='Last Name(*): ', font=("Calibri 12")).grid(row=1, column=2, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.LastName, width=20).grid(row=1, column=3, pady=5, sticky=tk.W)
+
+        # Second Row
+        # gender menu list
+        ttk.Label(self.info, text='Gender(*): ', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
+        menu_list = ['', 'Female', 'Male']
+
+        self.Gender.set(menu_list[0])
+        field_drop = ttk.OptionMenu(self.info, self.Gender, *menu_list)
+        field_drop.config(width=15)
+        field_drop.grid(row=2, column=1, sticky=tk.W)
+
+        ttk.Label(self.info, text='Birthday: ', font=("Calibri 12")).grid(row=2, column=2, pady=5, sticky=tk.W)
+        self.Birthday = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
+                                bg="darkblue", fg="white",
+                                year=date.today().year, top_level=self.winfo_toplevel())
+        self.Birthday.delete(0, "end")
+        self.Birthday.grid(row=2, column=3, sticky=tk.W)
+
+        # Third Row
+
+        ttk.Label(self.info, text='Arrival Date: ', font=("Calibri 12")).grid(row=3, column=0, pady=5, sticky=tk.W)
+        self.ArrivalDate = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
+                                    bg="darkblue", fg="white",
+                                    year=date.today().year, top_level=self.winfo_toplevel())
+        self.ArrivalDate.delete(0, "end")
+        self.ArrivalDate.grid(row=3, column=1, sticky=tk.W)
+
+        ttk.Label(self.info, text='Departure Date: ', font=("Calibri 12")).grid(row=3, column=2, pady=5, sticky=tk.W)
+        self.DepartureDate = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
+                                        bg="darkblue", fg="white",
+                                        year=date.today().year, top_level=self.winfo_toplevel())
+        self.DepartureDate.delete(0, "end")
+        self.DepartureDate.grid(row=3, column=3, sticky=tk.W)
+
+        # Fourth Row
+
+        ttk.Label(self.info, text='Mailing Address: ', font=("Calibri 12")).grid(row=4, column=0, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.MailingAddress, width=20).grid(row=4, column=1, pady=5, sticky=tk.W)
+
+        ttk.Label(self.info, text='Friends: ', font=("Calibri 12")).grid(row=4, column=2, pady=5, sticky=tk.W)
+        ttk.Entry(self.info, textvariable=self.Friends, width=20).grid(row=4, column=3, pady=5, sticky=tk.W)
+
+        # Fifth Row
+
+        ttk.Label(self.info, text='Forms: ', font=("Calibri 12")).grid(row=5, column=0, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.CompletedForm, onvalue=True, offvalue=False).grid(row=5, column=1, pady=5, sticky=tk.W)
+
+        ttk.Label(self.info, text='Equipment: ', font=("Calibri 12")).grid(row=5, column=2, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.Equipment, onvalue=True, offvalue=False).grid(row=5, column=3, pady=5, sticky=tk.W)
+
+        # Sixth Row
+        ttk.Label(self.info, text='Check-In: ', font=("Calibri 12")).grid(row=6, column=0, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.CheckedIn, onvalue=True, offvalue=False).grid(row=6, column=1, pady=5, sticky=tk.W)
+
+
+        def populate_fields(self):
+            db = DatabaseUti()
+            camper_id = self.CamperID.get()
+
+            if not camper_id:
+                tk.messagebox.showerror('Warning!', "Please enter a Camper ID")
+                return
+
+            result = db.query_table_with_condition("camper", "*", f"CamperID = {camper_id}")
+            if not result:
+                tk.messagebox.showerror('Error!', "Camper not found")
+                return
+
+            camper_data = result[0]
+
+    def update_camper_data(self):
+        db = DatabaseUti()
+        camper_id = self.CamperID.get()
+
+        if not camper_id:
+            tk.messagebox.showerror('Warning!', "Please enter a Camper ID")
+            return
+
+        # Get the updated values from form fields
+        kwargs = {}
+        
+        if self.FirstName.get():
+            kwargs["FirstName"] = self.FirstName.get()
+        if self.LastName.get():
+            kwargs["LastName"] = self.LastName.get()
+        if self.Birthday.get_date():
+            kwargs["Birthday"] = self.Birthday.get_date()
+        if self.Gender.get():
+            kwargs["Gender"] = self.Gender.get()
+        if self.ArrivalDate.get_date():
+            kwargs["ArrivalDate"] = self.ArrivalDate.get_date()
+        if self.Equipment.get():
+            kwargs["Equipment"] = self.Equipment.get()
+        if self.DepartureDate.get_date():
+            kwargs["DepartureDate"] = self.DepartureDate.get_date()
+        if self.CompletedForm.get():
+            kwargs["CompletedForm"] = self.CompletedForm.get()
+        if self.CheckedIn.get():
+            kwargs["CheckedIn"] = self.CheckedIn.get()
+        if self.MailingAddress.get():
+            kwargs["MailingAddress"] = self.MailingAddress.get()
+        if self.Friends.get():
+            kwargs["Friends"] = self.Friends.get()
+
+        status = db.update_camper_checkin(camper_id, **kwargs)
+        if status == False:
+            tk.messagebox.showerror('Error!', "Failed to update Camper")
+            self.clear_create_data()
+        else:
+            tk.messagebox.showinfo('Successful!', "The Camper has been successfully updated")
+            self.clear_create_data()
+
+        
+    def clear_create_data(self):
+        self.FirstName.set('')
+        self.LastName.set('')
+        self.Birthday.delete(0, "end")
+        self.Gender.set('')
+        self.ArrivalDate.delete(0, "end")
+        self.DepartureDate.delete(0, "end")
+        self.CompletedForm.set(False)
+        self.Equipment.set(False)
+        self.CheckedIn.set(False)
+        self.MailingAddress.set('')
+        self.Friends.set('')
+
+class CheckinFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        # ttk.Label(self).pack()
+        
 
         self.table_view = ttk.Frame()
         self.table_view.pack()
@@ -206,23 +423,7 @@ class CheckinFrame(ttk.Frame):
         self.tree_view.pack(side="left", fill=tk.BOTH, expand=True)
 
 
-        #update frame
-        self.update_frame = ttk.Frame(self)
-        self.update_frame.pack(pady=5)
-
-        ttk.Label(self.update_frame, text="Camper ID:").grid(row=0, column=0)
-        self.camper_id_entry = ttk.Entry(self.update_frame, width=10)
-        self.camper_id_entry.grid(row=0, column=1)
-
-        self.equipment_var = tk.BooleanVar()
-        self.form_var = tk.BooleanVar()
-        self.checkin_var = tk.BooleanVar()
-
-        ttk.Checkbutton(self.update_frame, text="Equipment", variable=self.equipment_var).grid(row=1, column=0)
-        ttk.Checkbutton(self.update_frame, text="Forms", variable=self.form_var).grid(row=1, column=1)
-        ttk.Checkbutton(self.update_frame, text="Check-in", variable=self.checkin_var).grid(row=1, column=2)
-
-        ttk.Button(self.update_frame, text="Update", command=self.update_camper_data).grid(row=2, column=1)
+        
 
     def show_camper_data(self):
         # delete the old records!
@@ -252,20 +453,6 @@ class CheckinFrame(ttk.Frame):
                 for record in records[::-1]:
                     print(record)
                     self.tree_view.insert("", index + 1, values=record)
-
-    def update_camper_data(self):
-        camper_id = self.camper_id_entry.get()
-        equipment = self.equipment_var.get()
-        form = self.form_var.get()
-        checkin = self.checkin_var.get()
-
-        if not camper_id:
-            tk.messagebox.showerror("Error", "Please enter a Camper ID.")
-            return
-
-        db = DatabaseUti()
-        db.update_camper_checkin(camper_id, Equipment=equipment, CompletedForm=form, CheckedIn=checkin)
-        self.show_camper_data()
 
 class UpdateFrame(ttk.Frame):
 

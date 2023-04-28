@@ -4,7 +4,7 @@ ITM 360: Advanced Application Development
 
 Project: Gila breath Camp Application
 
-Author: Andrew MinksWinberg jjj
+Author: Andrew MinksWinberg 
 """
 
 import tkinter as tk
@@ -36,13 +36,13 @@ class MainPage:
         
         # create the frames for each tab
         self.registration_frame = RegistrationFrame(self.notebook)
-        self.notebook.add(self.registration_frame, text="Registration")
+        self.notebook.add(self.registration_frame, text="Camper Registration and Management")
 
-        self.checkin_frame = CheckinFrame(self.notebook)
-        self.notebook.add(self.checkin_frame, text="Check-In")
+        # self.checkin_frame = CheckinFrame(self.notebook)
+        # self.notebook.add(self.checkin_frame, text="Check-In")
 
         self.assignment_frame = AssignmentFrame(self.notebook)
-        self.notebook.add(self.assignment_frame, text="Assignment")
+        self.notebook.add(self.assignment_frame, text="Bunkhouse Assignment")
 
         self.payment_frame = SearchFrame(self.notebook)
         self.notebook.add(self.payment_frame, text="Payment")
