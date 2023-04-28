@@ -38,8 +38,6 @@ class MainPage:
         self.registration_frame = RegistrationFrame(self.notebook)
         self.notebook.add(self.registration_frame, text="Camper Registration and Management")
 
-        # self.checkin_frame = CheckinFrame(self.notebook)
-        # self.notebook.add(self.checkin_frame, text="Check-In")
 
         self.assignment_frame = AssignmentFrame(self.notebook)
         self.notebook.add(self.assignment_frame, text="Bunkhouse Assignment")
