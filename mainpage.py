@@ -17,7 +17,7 @@ class MainPage:
     def __init__(self, master):
 
         self.master = master
-        self.master.geometry("900x500")
+        self.master.geometry("1700x900")
         self.master.title("ITM360  - Gila Breath Camp  v1.0.0")
         
         # initialize the page
