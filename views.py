@@ -1,11 +1,8 @@
-
-
 import tkinter as tk
-from tkinter import ttk, messagebox, Label, BOTTOM
+from tkinter import ttk, messagebox
 from db import DatabaseUti
 from tkcalendar import Calendar, DateEntry
 from datetime import date, datetime
-from PIL import ImageTk, Image
 
 
 class RegistrationFrame(ttk.Frame):
@@ -579,5 +576,66 @@ class AboutFrame(ttk.Frame):
         ttk.Label(self, text = 'About Page', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
         ttk.Label(self, text = 'About Product: Created by Tkinter').pack()
-        ttk.Label(self, text = 'About Author: Maison Anderson, Andrew Minkswinberg, Santiago Londono, Jamal Warren-March').pack()
+        ttk.Label(self, text = 'About Author: Rachel Z').pack()
         ttk.Label(self, text = "All Rights Reserved for the use of UT ITM360").pack()
+
+class AssignmentFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.db = DatabaseUti()
+
+        ttk.Label(self, text='Assignment Page', font=("Bahnschrift", 16)).pack()
+
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        self.tree_views = [None] * 6
+        self.bunkhouse_tabs = [None] * 6
+
+        for i in range(6):
+            bunkhouse_id = i + 1
+            self.bunkhouse_tabs[i] = ttk.Frame(self.notebook)
+            self.notebook.add(self.bunkhouse_tabs[i], text=f"Bunkhouse {bunkhouse_id}")
+
+            columns = ("CamperID", "FirstName", "LastName", "Gender", "Age")
+
+            self.tree_views[i] = ttk.Treeview(self.bunkhouse_tabs[i], show='headings', selectmode='browse', columns=columns)
+
+            for col in columns:
+                self.tree_views[i].column(col, width=130, anchor='center')
+                self.tree_views[i].heading(col, text=col)
+
+            scrollbar_horizontal = ttk.Scrollbar(self.bunkhouse_tabs[i], orient=tk.HORIZONTAL, command=self.tree_views[i].xview)
+            scrollbar_horizontal.pack(side="bottom", fill='x')
+
+            scrollbar_vertical = ttk.Scrollbar(self.bunkhouse_tabs[i], orient=tk.VERTICAL, command=self.tree_views[i].yview)
+            scrollbar_vertical.pack(side="right", fill='y')
+
+            self.tree_views[i].configure(xscrollcommand=scrollbar_horizontal.set, yscrollcommand=scrollbar_vertical.set)
+            self.tree_views[i].pack(side="left", fill=tk.BOTH, expand=True)
+
+            self.load_bunkhouse_data(bunkhouse_id, self.tree_views[i])
+
+        ttk.Button(self, text="Auto Assign Camper", command=self.auto_assign_camper).pack(pady=5)
+
+    def load_bunkhouse_data(self, bunkhouse_id, tree_view):
+        records = self.db.get_bunkhouse_assignments(bunkhouse_id)
+        for record in records:
+            age = self.calculate_age(record[3])
+            tree_view.insert("", "end", values=(record[0], record[1], record[2], record[4], age))
+
+    def auto_assign_camper(self):
+        # Call the insert_camper_bunkhouse method to auto-assign campers
+        self.db.insert_camper_bunkhouse()
+
+        # Refresh the bunkhouse data displayed in the tree views
+        for i in range(6):
+            bunkhouse_id = i + 1
+            self.tree_views[i].delete(*self.tree_views[i].get_children())
+            self.load_bunkhouse_data(bunkhouse_id, self.tree_views[i])
+
+    def calculate_age(self, birthdate):
+        birthdate = datetime.strptime(birthdate, "%Y-%m-%d")
+        today = datetime.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        return age
