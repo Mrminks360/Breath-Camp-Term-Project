@@ -11,36 +11,15 @@ class RegistrationFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
 
-        # Create a canvas and a scrollbar
-        self.canvas = tk.Canvas(self)
-        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.scrollable_frame = ttk.Frame(self.canvas)
-
-        # Set the canvas to scroll the scrollable_frame
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(
-                scrollregion=self.canvas.bbox("all")
-            )
-        )
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        # Pack the canvas and the scrollbar
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.scrollbar.pack(side="right", fill="y")
-
-        # Add the contents to the scrollable_frame
-        ttk.Label(self.scrollable_frame).pack()
-        ttk.Label(self.scrollable_frame, text='Camper Registration and Management', font=("Bahnschrift", 16)).pack()
-        ttk.Label(self.scrollable_frame).pack()
+        ttk.Label(self, text='Camper Registration and Management', font=("Bahnschrift", 16)).pack()
+        ttk.Label(self).pack()
 
         # Create the search table
-        self.checkin_frame = CheckinFrame(self.scrollable_frame)
+        self.checkin_frame = CheckinFrame(self)
         self.checkin_frame.pack()
 
         # Create the notebook (tabs)
-        self.notebook = ttk.Notebook(self.scrollable_frame)
+        self.notebook = ttk.Notebook(self)
         self.notebook.pack(pady=10, padx=10, expand=True)
 
         # Create the tabs
@@ -214,6 +193,7 @@ class UpdateCamper(ttk.Frame):
         self.MailingAddress = tk.StringVar()
         self.Friends = tk.StringVar()
         self.CamperID = tk.StringVar()
+        self.AcceptanceNotice = tk.BooleanVar()
 
         self.create_page()
         ttk.Button(self, text='Submit', command=self.update_camper_data).pack(side="right", pady=10, padx=5,
@@ -287,6 +267,10 @@ class UpdateCamper(ttk.Frame):
         ttk.Label(self.info, text='Check-In: ', font=("Calibri 12")).grid(row=6, column=0, pady=5, sticky=tk.W)
         ttk.Checkbutton(self.info, variable=self.CheckedIn, onvalue=True, offvalue=False).grid(row=6, column=1, pady=5, sticky=tk.W)
 
+        # Seventh Row
+        ttk.Label(self.info, text='Acceptance Notice: ', font=("Calibri 12")).grid(row=7, column=0, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.AcceptanceNotice, onvalue=True, offvalue=False).grid(row=7, column=1, pady=5, sticky=tk.W)
+
 
         def populate_fields(self):
             db = DatabaseUti()
@@ -336,6 +320,12 @@ class UpdateCamper(ttk.Frame):
             kwargs["MailingAddress"] = self.MailingAddress.get()
         if self.Friends.get():
             kwargs["Friends"] = self.Friends.get()
+        if self.AcceptanceNotice.get() is not None:
+            kwargs["AcceptedNotice"] = self.AcceptanceNotice.get()
+            if self.AcceptanceNotice.get():
+                kwargs["AcceptedNoticeDate"] = date.today().strftime("%Y-%m-%d")
+            else:
+                kwargs["AcceptedNoticeDate"] = None
 
         status = db.update_camper_checkin(camper_id, **kwargs)
         if status == False:
@@ -358,12 +348,11 @@ class UpdateCamper(ttk.Frame):
         self.CheckedIn.set(False)
         self.MailingAddress.set('')
         self.Friends.set('')
+        self.AcceptanceNotice.set(False)
 
 class CheckinFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        # ttk.Label(self).pack()
-        
 
         self.table_view = ttk.Frame()
         self.table_view.pack()
@@ -373,7 +362,7 @@ class CheckinFrame(ttk.Frame):
 
     def create_page(self):
 
-            # Search By Frame
+        # Search By Frame
         self.search_by_frame = ttk.LabelFrame(self, text='Search By')
         self.search_by_frame.pack(pady=5, expand=True)
 
@@ -381,7 +370,7 @@ class CheckinFrame(ttk.Frame):
         self.table_by_frame = ttk.Frame(self)
         self.table_by_frame.pack()
 
-        menu_list = ['', 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends']
+        menu_list = ['', 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice', 'AcceptedNoticeDate']
 
         oMenuWidth = len(max(menu_list, key=len))
 
@@ -398,8 +387,8 @@ class CheckinFrame(ttk.Frame):
         ttk.Button(self.search_by_frame, text="Search", command=self.show_camper_data).grid(row=0, column=2)
 
         # Table view - to display the search result
-        columns = ("CamperID", 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends')
-        
+        columns = ("CamperID", 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice', 'AcceptedNoticeDate')
+
         # Create the tree_view first
         self.tree_view = ttk.Treeview(self.table_by_frame, show='headings', selectmode='browse', columns=columns)
 
@@ -421,10 +410,8 @@ class CheckinFrame(ttk.Frame):
         self.tree_view.configure(xscrollcommand=scrollbar_horizontal.set, yscrollcommand=scrollbar_vertical.set)
 
         self.tree_view.pack(side="left", fill=tk.BOTH, expand=True)
-
-
-        
-
+    
+    
     def show_camper_data(self):
         # delete the old records!
         for _ in map(self.tree_view.delete, self.tree_view.get_children("")):
@@ -454,148 +441,71 @@ class CheckinFrame(ttk.Frame):
                     print(record)
                     self.tree_view.insert("", index + 1, values=record)
 
-class UpdateFrame(ttk.Frame):
-
+class AcceptanceNoticeFrame(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        ttk.Label(self).pack()
-        ttk.Label(self, text='Update Page', font=("Bahnschrift", 16)).pack()
-        ttk.Label(self).pack()
 
-        self.fname = tk.StringVar()
-        self.lname = tk.StringVar()
-        self.gender = tk.StringVar()
-        self.mobile = tk.StringVar()
-        self.address = tk.StringVar()
-        self.city = tk.StringVar()
-        self.state = tk.StringVar()
-        self.zipcode = tk.StringVar()
-        self.email = tk.StringVar()
+        self.db = DatabaseUti()
 
-        self.create_page()
+        # Create a canvas to hold the table
+        self.canvas = tk.Canvas(self)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    def create_page(self):
-        # Search By Frame
-        self.search_by_frame = ttk.LabelFrame(self, text='Search Profile By Email')
-        self.search_by_frame.pack(pady=5, expand=True)
+        # Add a scrollbar to the canvas
+        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        ttk.Entry(self.search_by_frame, textvariable=self.email, width=30).grid(row=0, column=1, padx=5)
-        ttk.Button(self.search_by_frame, text="Search", command=self.show_customer_data).grid(row=0, column=2, pady=10)
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
 
-        # Show Customer Frame
-        self.info = ttk.LabelFrame(self, text='Customer Profile')
-        self.info.pack(pady=5, expand=True)
+        # Create a frame to hold the table's rows
+        self.table_frame = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.table_frame, anchor='nw')
 
-        # first row
-        ttk.Label(self.info, text='First Name(*): ', font=("Calibri 12")).grid(row=0, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.fname, width=20).grid(row=0, column=1, pady=5, sticky=tk.W)
+        self.populate_table()
 
-        ttk.Label(self.info, width=5).grid(row=0, column=2)
+    def populate_table(self):
+        unnotified_campers = self.db.get_unnotified_campers()
 
-        ttk.Label(self.info, text='Last Name(*): ', font=("Calibri 12")).grid(row=0, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.lname, width=20).grid(row=0, column=4, pady=5, sticky=tk.W)
+        for index, camper in enumerate(unnotified_campers):
+            self.create_table_row(index, camper)
 
-        # Second Row
-        # gender menu list
-        ttk.Label(self.info, text='Gender(*): ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
-        menu_list = ['', 'Female', 'Male']
+    def create_table_row(self, index, camper):
+        # Create camper data labels and entries
+        id_label = tk.Label(self.table_frame, text=camper[0], width=5)
+        first_name_entry = tk.Entry(self.table_frame, width=15)
+        last_name_entry = tk.Entry(self.table_frame, width=15)
+        mailing_address_entry = tk.Entry(self.table_frame, width=30)
 
-        self.gender.set(menu_list[0])
-        field_drop = ttk.OptionMenu(self.info, self.gender, *menu_list)
-        field_drop.config(width=15)
-        field_drop.grid(row=1, column=1, sticky=tk.W)
+        first_name_entry.insert(0, camper[1])
+        last_name_entry.insert(0, camper[2])
+        mailing_address_entry.insert(0, camper[3])
 
-        ttk.Label(self.info, width=5).grid(row=1, column=2)
+        # Create "Sent" button
+        sent_button = tk.Button(self.table_frame, text="Send", command=lambda camper_id=camper[0], row_index=index: self.send_acceptance_notice(camper_id, row_index))
 
-        ttk.Label(self.info, text='Date of Birth: ', font=("Calibri 12")).grid(row=1, column=3, pady=5, sticky=tk.W)
-        # self.dob entry!
-        self.dob = DateEntry(self.info, width=20, date_pattern='yyyy-mm-dd',
-                             bg="darkblue", fg="white",
-                             year=date.today().year)
-        self.dob.delete(0, "end")
-        self.dob.grid(row=1, column=4, sticky=tk.W)
+        # Place widgets in the table frame
+        id_label.grid(row=index, column=0, padx=5, pady=5)
+        first_name_entry.grid(row=index, column=1, padx=5, pady=5)
+        last_name_entry.grid(row=index, column=2, padx=5, pady=5)
+        mailing_address_entry.grid(row=index, column=3, padx=5, pady=5)
+        sent_button.grid(row=index, column=4, padx=5, pady=5)
 
-        # Thrid Row
-        ttk.Label(self.info, text='Email(*)', state = 'disabled', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.email, state = 'disabled', width=20).grid(row=2, column=1, pady=5, sticky=tk.W)
+    def send_acceptance_notice(self, camper_id, row_index):
+        self.db.update_acceptance_notice(camper_id, True, date.today().strftime("%Y-%m-%d"))
+        messagebox.showinfo("Success", "Acceptance notice sent.")
+        self.remove_table_row(row_index)
+        self.refresh_table()
 
-        ttk.Label(self.info, width=5).grid(row=2, column=2)
+    def refresh_table(self):
+        for widget in self.table_frame.grid_slaves():
+            widget.destroy()
 
-        ttk.Label(self.info, text='Mobile(*)', font=("Calibri 12")).grid(row=2, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.mobile, width=20).grid(row=2, column=4, pady=5, sticky=tk.W)
+        self.populate_table()
 
-        # Fourth Row
-        ttk.Label(self.info, text='Address', font=("Calibri 12")).grid(row=3, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.address, width=20).grid(row=3, column=1, pady=5, sticky=tk.W)
-
-        ttk.Label(self.info, width=5).grid(row=3, column=2)
-
-        ttk.Label(self.info, text='City ', font=("Calibri 12")).grid(row=3, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.city, width=20).grid(row=3, column=4, pady=5, sticky=tk.W)
-
-        # Fifth Row
-        ttk.Label(self.info, text='State: ', font=("Calibri 12")).grid(row=4, column=0, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.state, width=20).grid(row=4, column=1, pady=5, sticky=tk.W)
-
-        ttk.Label(self.info, width=5).grid(row=4, column=2)
-
-        ttk.Label(self.info, text='Zipcode', font=("Calibri 12")).grid(row=4, column=3, pady=5, sticky=tk.W)
-        ttk.Entry(self.info, textvariable=self.zipcode, width=20).grid(row=4, column=4, pady=5, sticky=tk.W)
-
-        ttk.Button(self.info, text='Clear', command=self.clear_customer_data).grid(row=5, column=3, sticky=tk.W)
-        ttk.Button(self.info, text='submit', command=self.update_customer_data).grid(row=5, column=4, sticky=tk.W)
-
-    def show_customer_data(self):
-        db = DatabaseUti()
-        condition = f"email = '{self.email.get()}'"
-        result = db.query_table_with_condition("customers", "*", condition)
-        print(result)
-        if len(result)== 0:
-            tk.messagebox.showerror('Warning!',
-                                    "This email address doesn't exist!")
-        else:
-            self.fname.set(result[0][0])
-            self.lname.set(result[0][1])
-            self.gender.set(result[0][2])
-            if len(result[0][3]) != 0:
-                self.dob.set_date(result[0][3])
-            self.mobile.set(result[0][4])
-            self.address.set(result[0][5])
-            self.city.set(result[0][6])
-            self.state.set(result[0][7])
-            self.zipcode.set(result[0][8])
-
-    def clear_customer_data(self):
-        self.fname.set("")
-        self.lname.set("")
-        self.gender.set("")
-        self.dob.delete(0, "end")
-        self.mobile.set("")
-        self.address.set("")
-        self.city.set("")
-        self.state.set("")
-        self.zipcode.set("")
-        self.email.set("")
-
-    def update_customer_data(self):
-        db = DatabaseUti()
-
-        if self.email.get() == '':
-            tk.messagebox.showerror('Warning!',
-                                    "This email address doesn't exist!")
-
-        else:
-            flag = db.update_customer_table(self.fname.get(), self.lname.get(), self.gender.get(),
-                                            self.dob.get(), self.mobile.get(), self.address.get(),
-                                            self.city.get(), self.state.get(), self.zipcode.get(),
-                                            self.email.get())
-            if flag == False:
-                tk.messagebox.showerror('Warning!',
-                                        "This email address doesn't exist!")
-            else:
-                tk.messagebox.showinfo('Successful!',
-                                       "The customer profile has been successfully updated")
-            self.clear_customer_data()
+    def remove_table_row(self, row_index):
+        for widget in self.table_frame.grid_slaves(row=row_index):
+            widget.destroy()
 
 class PaymentFrame(ttk.Frame):
     

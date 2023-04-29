@@ -30,9 +30,12 @@ CREATE TABLE IF NOT EXISTS camper (
     CompletedForm BOOLEAN,
     CheckedIn BOOLEAN,
     MailingAddress TEXT,
-    Friends TEXT NULL
+    Friends TEXT NULL,
+    AcceptedNotice BOOLEAN DEFAULT 0,
+    AcceptedNoticeDate DATE 
 );
 """
+
 
 CREATE_INVOICE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS invoice (

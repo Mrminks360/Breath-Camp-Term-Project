@@ -175,7 +175,7 @@ class DatabaseUti:
             print(e)
             return False
 
-    def insert_camper_data_from_file(self,file_path):
+    def insert_camper_data_from_file(self, file_path):
         conn = DatabaseUti().create_connection()
         c = conn.cursor()
         with open(file_path, "r") as file:
@@ -192,14 +192,16 @@ class DatabaseUti:
                 checked_in = bool(int(data[8]))
                 mailing_address = data[9]
                 friends = data[10] if data[10] != "None" else None
+                accepted_notice = False
+                accepted_notice_date = None
                 try:
-                    c.execute("INSERT INTO camper(FirstName, LastName, Birthday, Gender, ArrivalDate, Equipment, DepartureDate, CompletedForm, CheckedIn, MailingAddress, Friends) VALUES(?,?,?,?,?,?,?,?,?,?,?)", 
-                        (first_name, last_name, birthday, gender, arrival_date, equipment, departure_date, completed_form, checked_in, mailing_address, friends))
+                    c.execute("INSERT INTO camper(FirstName, LastName, Birthday, Gender, ArrivalDate, Equipment, DepartureDate, CompletedForm, CheckedIn, MailingAddress, Friends, AcceptedNotice, AcceptedNoticeDate) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (first_name, last_name, birthday, gender, arrival_date, equipment, departure_date, completed_form, checked_in, mailing_address, friends, accepted_notice, accepted_notice_date))
                 except Exception as e:
                     print(e)
         conn.commit()
         conn.close()
-    
+
     def insert_bunkhouse_data_from_file(self,file_path):
         conn = DatabaseUti().create_connection()
         c = conn.cursor()
@@ -303,6 +305,27 @@ class DatabaseUti:
         else:
             return False
 
+    def get_unnotified_campers(self):
+        conn = self.create_connection()
+        c = conn.cursor()
+        try:
+            c.execute("SELECT CamperID, FirstName, LastName, MailingAddress FROM camper WHERE AcceptedNotice = 0")
+            results = c.fetchall()
+        except Exception as e:
+            print(e)
+        conn.close()
+        return results
+
+    def update_acceptance_notice(self, camper_id, accepted_notice, accepted_notice_date):
+        conn = self.create_connection()
+        c = conn.cursor()
+        try:
+            c.execute("UPDATE camper SET AcceptedNotice = ?, AcceptedNoticeDate = ? WHERE CamperID = ?",
+                    (accepted_notice, accepted_notice_date, camper_id))
+            conn.commit()
+        except Exception as e:
+            print(e)
+        conn.close()
 
 db = DatabaseUti()
 

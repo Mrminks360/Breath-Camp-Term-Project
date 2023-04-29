@@ -9,7 +9,7 @@ Author: Andrew MinksWinberg
 
 import tkinter as tk
 from tkinter import ttk
-from views import AboutFrame, RegistrationFrame, SearchFrame, UpdateFrame, DeleteFrame, PaymentFrame,CheckinFrame, AssignmentFrame
+from views import AboutFrame, RegistrationFrame, SearchFrame, AcceptanceNoticeFrame, DeleteFrame, PaymentFrame,CheckinFrame, AssignmentFrame
 from styles import TTK_THEME, COLOR_THEME
 
 
@@ -38,6 +38,8 @@ class MainPage:
         self.registration_frame = RegistrationFrame(self.notebook)
         self.notebook.add(self.registration_frame, text="Camper Registration and Management")
 
+        self.acceptance_notice_frame = AcceptanceNoticeFrame(self.notebook)
+        self.notebook.add(self.acceptance_notice_frame, text="Acceptance Notice")
 
         self.assignment_frame = AssignmentFrame(self.notebook)
         self.notebook.add(self.assignment_frame, text="Bunkhouse Assignment")
