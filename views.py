@@ -587,4 +587,6 @@ class AboutFrame(ttk.Frame):
         image_label = Label(self, image=tk_image)
         image_label.pack(side=BOTTOM)
 
+class TribeFrame(ttk.Frame):
+    pass
 
