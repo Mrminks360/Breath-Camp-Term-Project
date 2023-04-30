@@ -736,3 +736,69 @@ class AssignmentFrame(ttk.Frame):
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
+
+
+class TribeFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.db = DatabaseUti()
+
+        ttk.Label(self, text='Tribe Assignment Page', font=("Bahnschrift", 16)).pack()
+
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        self.tree_views = [None] * 6
+        self.tribe_tabs = [None] * 6
+        tribe_names = ["Alpha", "Beta", "Gamma", "Delta", "Zeta", "Kappa"]
+
+        for i in range(6):
+            tribe_id = tribe_names[i]
+            self.tribe_tabs[i] = ttk.Frame(self.notebook)
+            self.notebook.add(self.tribe_tabs[i], text=f"{tribe_id}")
+
+            columns = ("CamperID", "FirstName", "LastName", "Gender", "Age")
+
+            self.tree_views[i] = ttk.Treeview(self.tribe_tabs[i], show='headings', selectmode='browse', columns=columns)
+
+            for col in columns:
+                self.tree_views[i].column(col, width=130, anchor='center')
+                self.tree_views[i].heading(col, text=col)
+
+            scrollbar_horizontal = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.HORIZONTAL, command=self.tree_views[i].xview)
+            scrollbar_horizontal.pack(side="bottom", fill='x')
+
+            scrollbar_vertical = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.VERTICAL, command=self.tree_views[i].yview)
+            scrollbar_vertical.pack(side="right", fill='y')
+
+            self.tree_views[i].configure(xscrollcommand=scrollbar_horizontal.set, yscrollcommand=scrollbar_vertical.set)
+            self.tree_views[i].pack(side="left", fill=tk.BOTH, expand=True)
+
+            self.load_tribe_data(tribe_id, self.tree_views[i])
+
+        ttk.Button(self, text="Auto Assign Camper", command=self.aggin_campers).pack(pady=5)
+
+    def load_tribe_data(self, tribe_id, tree_view):
+        records = self.db.get_bunkhouse_assignments(tribe_id)
+        for record in records:
+            age = self.calculate_age(record[3])
+            tree_view.insert("", "end", values=(record[0], record[1], record[2], record[4], age))
+
+    def aggin_campers(self):
+        # Call the insert_camper_bunkhouse method to auto-assign campers
+        self.db.insert_camper_bunkhouse()
+
+        # Refresh the bunkhouse data displayed in the tree views
+        for i in range(6):
+            tribe_id = i + 1
+            self.tree_views[i].delete(*self.tree_views[i].get_children())
+            self.load_tribe_data(tribe_id, self.tree_views[i])
+
+    def calculate_age(self, birthdate):
+        birthdate = datetime.strptime(birthdate, "%Y-%m-%d")
+        today = datetime.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        return age
+
+
+
