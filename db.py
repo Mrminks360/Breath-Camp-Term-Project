@@ -329,6 +329,14 @@ class DatabaseUti:
             print(e)
         conn.close()
 
+    def remove_camper_from_tribe(self, camper_id):
+        try:
+            self.cursor.execute("UPDATE Camper SET TribeID = NULL WHERE CamperID = ?", (camper_id,))
+            self.conn.commit()
+            return True
+        except:
+            return False
+
     def get_male_count(self, tribe_id):
         self.cursor.execute("SELECT COUNT(*) FROM Camper WHERE Gender='Male' AND TribeID=?", (tribe_id,))
         count = self.cursor.fetchone()[0]
