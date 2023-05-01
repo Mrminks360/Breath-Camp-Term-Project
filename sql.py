@@ -1,12 +1,4 @@
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Feb 17 09:25:07 2023
-
-@author: Andrew Minks
-"""
-
-# Login 
+# Login
 CREATE_LOGIN_TABLE_SQL = """ CREATE TABLE IF NOT EXISTS logins(
                       username text, 
                       password text,
@@ -32,7 +24,10 @@ CREATE TABLE IF NOT EXISTS camper (
     MailingAddress TEXT,
     Friends TEXT NULL,
     AcceptedNotice BOOLEAN DEFAULT 0,
-    AcceptedNoticeDate DATE 
+    AcceptedNoticeDate DATE,
+    IsCancelled BOOLEAN DEFAULT 0,
+    CancellationDate DATE,
+    RefundPercentage REAL
 );
 """
 

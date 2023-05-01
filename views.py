@@ -6,12 +6,12 @@ from datetime import date, datetime
 
 import tkinter as tk
 
-class RegistrationFrame(ttk.Frame):
+class ManageFrame(ttk.Frame):
 
     def __init__(self, master):
         super().__init__(master)
 
-        ttk.Label(self, text='Camper Registration and Management', font=("Bahnschrift", 16)).pack()
+        ttk.Label(self, text='Camper Management', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
 
         # Create the search table
@@ -27,8 +27,8 @@ class RegistrationFrame(ttk.Frame):
         self.update_tab = UpdateCamper(self.notebook)
 
         # Add tabs to the notebook
-        self.notebook.add(self.register_tab, text='Register Camper')
-        self.notebook.add(self.update_tab, text='Update Camper')
+        self.notebook.add(self.register_tab, text='Register', )
+        self.notebook.add(self.update_tab, text='Update')
 
 class RegisterCamper(ttk.Frame):
 
@@ -179,7 +179,6 @@ class UpdateCamper(ttk.Frame):
         ttk.Label(self).pack()
         ttk.Label(self, text='Camper Information', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
-
         
         self.FirstName = tk.StringVar()
         self.LastName = tk.StringVar()
@@ -194,6 +193,7 @@ class UpdateCamper(ttk.Frame):
         self.Friends = tk.StringVar()
         self.CamperID = tk.StringVar()
         self.AcceptanceNotice = tk.BooleanVar()
+        self.IsCancelled = tk.BooleanVar()
 
         self.create_page()
         ttk.Button(self, text='Submit', command=self.update_camper_data).pack(side="right", pady=10, padx=5,
@@ -208,15 +208,15 @@ class UpdateCamper(ttk.Frame):
         ttk.Entry(self.info, textvariable=self.CamperID, width=20).grid(row=0, column=1, pady=5, sticky=tk.W)
         
         # First row
-        ttk.Label(self.info, text='First Name(*): ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='First Name: ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
         ttk.Entry(self.info, textvariable=self.FirstName, width=20).grid(row=1, column=1, pady=5, sticky=tk.W)
 
-        ttk.Label(self.info, text='Last Name(*): ', font=("Calibri 12")).grid(row=1, column=2, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Last Name: ', font=("Calibri 12")).grid(row=1, column=2, pady=5, sticky=tk.W)
         ttk.Entry(self.info, textvariable=self.LastName, width=20).grid(row=1, column=3, pady=5, sticky=tk.W)
 
         # Second Row
         # gender menu list
-        ttk.Label(self.info, text='Gender(*): ', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Gender: ', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
         menu_list = ['', 'Female', 'Male']
 
         self.Gender.set(menu_list[0])
@@ -267,10 +267,11 @@ class UpdateCamper(ttk.Frame):
         ttk.Label(self.info, text='Check-In: ', font=("Calibri 12")).grid(row=6, column=0, pady=5, sticky=tk.W)
         ttk.Checkbutton(self.info, variable=self.CheckedIn, onvalue=True, offvalue=False).grid(row=6, column=1, pady=5, sticky=tk.W)
 
-        # Seventh Row
-        ttk.Label(self.info, text='Acceptance Notice: ', font=("Calibri 12")).grid(row=7, column=0, pady=5, sticky=tk.W)
-        ttk.Checkbutton(self.info, variable=self.AcceptanceNotice, onvalue=True, offvalue=False).grid(row=7, column=1, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Acceptance Notice: ', font=("Calibri 12")).grid(row=6, column=2, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.AcceptanceNotice, onvalue=True, offvalue=False).grid(row=6, column=3, pady=5, sticky=tk.W)
 
+        ttk.Label(self.info, text='Cancel: ', font=("Calibri 12")).grid(row=0, column=2, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.IsCancelled, onvalue=True, offvalue=False).grid(row=0, column=3, pady=5, sticky=tk.W)
 
         def populate_fields(self):
             db = DatabaseUti()
@@ -297,7 +298,7 @@ class UpdateCamper(ttk.Frame):
 
         # Get the updated values from form fields
         kwargs = {}
-        
+
         if self.FirstName.get():
             kwargs["FirstName"] = self.FirstName.get()
         if self.LastName.get():
@@ -326,6 +327,15 @@ class UpdateCamper(ttk.Frame):
                 kwargs["AcceptedNoticeDate"] = date.today().strftime("%Y-%m-%d")
             else:
                 kwargs["AcceptedNoticeDate"] = None
+        if self.IsCancelled.get() is not None:
+            kwargs["IsCancelled"] = self.IsCancelled.get()
+            if self.IsCancelled.get():
+                kwargs["CancellationDate"] = date.today().strftime("%Y-%m-%d")
+                kwargs["RefundPercentage"] = self.calculate_refund(kwargs["AcceptedNoticeDate"],
+                                                                   kwargs["CancellationDate"])
+            else:
+                kwargs["CancellationDate"] = None
+                kwargs["RefundPercentage"] = None
 
         status = db.update_camper_checkin(camper_id, **kwargs)
         if status == False:
@@ -350,6 +360,28 @@ class UpdateCamper(ttk.Frame):
         self.Friends.set('')
         self.AcceptanceNotice.set(False)
 
+    def calculate_refund(self, accept_date, cancel_date):
+        if not accept_date:
+            return 0.9
+        else:
+            accept_year = int(accept_date[0:4])
+            accept_month = int(accept_date[5:7])
+            accept_day = int(accept_date[8:10])
+            cancel_year = int(cancel_date[0:4])
+            cancel_month = int(cancel_date[5:7])
+            cancel_day = int(cancel_date[8:10])
+            accept = date(accept_year, accept_month, accept_day)
+            cancel = date(cancel_year, cancel_month, cancel_day)
+
+            result = (cancel - accept).days//7
+
+            if result <= 3:
+                return 0.9
+            elif result <= 6:
+                return 0.45
+            else:
+                return 0
+
 class CheckinFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
@@ -370,7 +402,9 @@ class CheckinFrame(ttk.Frame):
         self.table_by_frame = ttk.Frame(self)
         self.table_by_frame.pack()
 
-        menu_list = ['', 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice', 'AcceptedNoticeDate']
+        menu_list = ['', 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment',
+                     'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends',
+                     'AcceptedNotice', 'AcceptedNoticeDate', 'IsCancelled', 'CancellationDate', 'RefundPercentage']
 
         oMenuWidth = len(max(menu_list, key=len))
 
@@ -387,7 +421,9 @@ class CheckinFrame(ttk.Frame):
         ttk.Button(self.search_by_frame, text="Search", command=self.show_camper_data).grid(row=0, column=2)
 
         # Table view - to display the search result
-        columns = ("CamperID", 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice', 'AcceptedNoticeDate')
+        columns = ("CamperID", 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment',
+                   'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice',
+                   'AcceptedNoticeDate', 'IsCancelled', 'CancellationDate', 'RefundPercentage')
 
         # Create the tree_view first
         self.tree_view = ttk.Treeview(self.table_by_frame, show='headings', selectmode='browse', columns=columns)
@@ -657,14 +693,6 @@ class SearchFrame(ttk.Frame):
                     print(record)
                     self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
 
-class DeleteFrame(ttk.Frame):
-    
-    def __init__(self, master):
-        super().__init__(master)
-        ttk.Label(self).pack()
-        ttk.Label(self, text = 'Delete Page', font=("Bahnschrift", 16)).pack()
-        ttk.Label(self).pack()
-        ttk.Label(self, text = "Waiting for future development!").pack()
 
 class AboutFrame(ttk.Frame):
     def __init__(self, master):

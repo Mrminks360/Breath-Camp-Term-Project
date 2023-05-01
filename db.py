@@ -1,14 +1,3 @@
-
-# -*- coding: utf-8 -*-
-"""
-ITM 360: Advanced Application Development
-
-Project: Camper Relationship Management System
-         Data - Model
-
-Author: Andrew Minkswinberg
-"""
-
 import sqlite3
 from datetime import date
 from sql import (CREATE_CAMPER_TABLE_SQL, CREATE_INVOICE_TABLE_SQL, CREATE_BUNKHOUSE_TABLE_SQL,
@@ -89,7 +78,8 @@ class DatabaseUti:
             print(e)
             return False
 
-    def update_camper_table(self, CamperID, FirstName, LastName, Birthday, Gender, ArrivalDate, Equipment, DepartureDate, CompletedForm, CheckedIn, MailingAddress, Friends):
+    def update_camper_table(self, CamperID, FirstName, LastName, Birthday, Gender, ArrivalDate, Equipment,
+                            DepartureDate, CompletedForm, CheckedIn, MailingAddress, Friends, IsActive):
         conn = self.create_connection()
         c = conn.cursor()
         try:
@@ -104,9 +94,11 @@ class DatabaseUti:
                         CompletedForm = ?,
                         CheckedIn = ?,
                         MailingAddress = ?,
-                        Friends = ?
+                        Friends = ?,
+                        IsActive = ?
                         WHERE CamperID = ?""",
-                    (FirstName, LastName, Birthday, Gender, ArrivalDate, Equipment, DepartureDate, CompletedForm, CheckedIn, MailingAddress, Friends, CamperID))
+                      (FirstName, LastName, Birthday, Gender, ArrivalDate, Equipment, DepartureDate,
+                       CompletedForm, CheckedIn, MailingAddress, Friends, IsActive, CamperID))
             
             conn.commit()
             conn.close()
@@ -327,14 +319,15 @@ class DatabaseUti:
             print(e)
         conn.close()
 
+
 db = DatabaseUti()
 
 #  To Recreate database move the data from the data folder into the same folder as db.py or copy the path and put into the functions below.
-# db.insert_one_record("logins", ("admin", "1234"))
-# db.insert_camper_data_from_file("FemaleCampers.txt")
-# db.insert_camper_data_from_file("MaleCampers.txt")
-# db.insert_bunkhouse_data_from_file("Bunkhouse.txt")
-# db.insert_tribe_data_from_file("Tribe.txt")
+#db.insert_one_record("logins", ("admin", "1234"))
+#db.insert_camper_data_from_file("FemaleCampers.txt")
+#db.insert_camper_data_from_file("MaleCampers.txt")
+#db.insert_bunkhouse_data_from_file("Bunkhouse.txt")
+#db.insert_tribe_data_from_file("Tribe.txt")
 
 
 
