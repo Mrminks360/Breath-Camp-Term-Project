@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from db import DatabaseUti
 from tkcalendar import Calendar, DateEntry
 from datetime import date, datetime
+from collections import defaultdict
 
 import tkinter as tk
 
@@ -673,8 +674,10 @@ class AboutFrame(ttk.Frame):
         ttk.Label(self, text = 'About Page', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
         ttk.Label(self, text = 'About Product: Created by Tkinter').pack()
-        ttk.Label(self, text = 'About Author: Rachel Z').pack()
+        ttk.Label(self, text = 'About Authors: Maison Anderson, Santiago Londono, Andrew Minkswinberg, and Jamal Warren-March').pack()
         ttk.Label(self, text = "All Rights Reserved for the use of UT ITM360").pack()
+        #self.image = tk.PhotoImage(file=r"C:\Users\SantiagoLondono\Documents\GitHub\Breath-Camp-Term-Project\CatCrying.jpg")
+        #ttk.Label(self, image=self.image).pack()
 
 class AssignmentFrame(ttk.Frame):
     def __init__(self, master):
@@ -757,7 +760,7 @@ class TribeFrame(ttk.Frame):
             self.tribe_tabs[i] = ttk.Frame(self.notebook)
             self.notebook.add(self.tribe_tabs[i], text=f"{tribe_id}")
 
-            columns = ("CamperID", "FirstName", "LastName", "Gender", "Age")
+            columns = ("CamperID", "FirstName", "LastName", "Gender", "Age", "Friends")
 
             self.tree_views[i] = ttk.Treeview(self.tribe_tabs[i], show='headings', selectmode='browse', columns=columns)
 
@@ -785,10 +788,7 @@ class TribeFrame(ttk.Frame):
             tree_view.insert("", "end", values=(record[0], record[1], record[2], record[4], age))
 
     def aggin_campers(self):
-        # Call the insert_camper_bunkhouse method to auto-assign campers
         self.db.insert_camper_bunkhouse()
-
-        # Refresh the bunkhouse data displayed in the tree views
         for i in range(6):
             tribe_id = i + 1
             self.tree_views[i].delete(*self.tree_views[i].get_children())
