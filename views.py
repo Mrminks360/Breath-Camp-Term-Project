@@ -756,9 +756,9 @@ class TribeFrame(ttk.Frame):
         tribe_names = ["Alpha", "Beta", "Gamma", "Delta", "Zeta", "Kappa"]
 
         for i in range(6):
-            tribe_id = tribe_names[i]
+            tribe_name = tribe_names[i]
             self.tribe_tabs[i] = ttk.Frame(self.notebook)
-            self.notebook.add(self.tribe_tabs[i], text=f"{tribe_id}")
+            self.notebook.add(self.tribe_tabs[i], text=f"{tribe_name}")
 
             columns = ("CamperID", "FirstName", "LastName", "Gender", "Age", "Friends")
 
@@ -768,7 +768,8 @@ class TribeFrame(ttk.Frame):
                 self.tree_views[i].column(col, width=130, anchor='center')
                 self.tree_views[i].heading(col, text=col)
 
-            scrollbar_horizontal = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.HORIZONTAL, command=self.tree_views[i].xview)
+            scrollbar_horizontal = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.HORIZONTAL,
+                                                 command=self.tree_views[i].xview)
             scrollbar_horizontal.pack(side="bottom", fill='x')
 
             scrollbar_vertical = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.VERTICAL, command=self.tree_views[i].yview)
@@ -777,7 +778,7 @@ class TribeFrame(ttk.Frame):
             self.tree_views[i].configure(xscrollcommand=scrollbar_horizontal.set, yscrollcommand=scrollbar_vertical.set)
             self.tree_views[i].pack(side="left", fill=tk.BOTH, expand=True)
 
-            self.load_tribe_data(tribe_id, self.tree_views[i])
+            self.load_tribe_data(tribe_name, self.tree_views[i])
 
         ttk.Button(self, text="Auto Assign Camper", command=self.aggin_campers).pack(pady=5)
 
@@ -788,7 +789,17 @@ class TribeFrame(ttk.Frame):
             tree_view.insert("", "end", values=(record[0], record[1], record[2], record[4], age))
 
     def aggin_campers(self):
-        self.db.insert_camper_bunkhouse()
+        # Get the number of males and females for each bunkhouse
+        male_counts = [self.db.get_male_count(tribe_id) for tribe_id in range(1, 7)]
+        female_counts = [self.db.get_female_count(tribe_id) for tribe_id in range(1, 7)]
+
+        # Determine the minimum count between males and females for each bunkhouse
+        min_counts = [min(male_counts[i], female_counts[i]) for i in range(6)]
+
+        # Call the insert_camper_bunkhouse method with the minimum count determined above
+        self.db.insert_camper_bunkhouse(min_counts)
+
+        # Refresh the bunkhouse data displayed in the tree views
         for i in range(6):
             tribe_id = i + 1
             self.tree_views[i].delete(*self.tree_views[i].get_children())
@@ -799,6 +810,3 @@ class TribeFrame(ttk.Frame):
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
-
-
-

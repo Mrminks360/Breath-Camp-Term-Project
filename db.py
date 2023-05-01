@@ -26,6 +26,8 @@ class DatabaseUti:
         self._create_table(CREATE_TRIBE_TABLE_SQL)
         self._create_table(CREATE_CAMPER_TRIBE_TABLE_SQL)
         self._create_table(CREATE_LOGIN_TABLE_SQL)
+        self.conn = sqlite3.connect('breath_camp.db')
+        self.cursor = self.conn.cursor()
 
     def create_connection(self):
         """
@@ -326,6 +328,17 @@ class DatabaseUti:
         except Exception as e:
             print(e)
         conn.close()
+
+    def get_male_count(self, tribe_id):
+        self.cursor.execute("SELECT COUNT(*) FROM Camper WHERE Gender='Male' AND TribeID=?", (tribe_id,))
+        count = self.cursor.fetchone()[0]
+        return count
+
+    def get_female_count(self, tribe_id):
+        self.cursor.execute("SELECT COUNT(*) FROM Camper WHERE Gender='Female' AND TribeID=?", (tribe_id,))
+        count = self.cursor.fetchone()[0]
+        return count
+
 
 db = DatabaseUti()
 
