@@ -599,99 +599,184 @@ class PaymentFrame(ttk.Frame):
             self.p_amount.set("")
 
 class SearchFrame(ttk.Frame):
-    def __init__(self, master):
-        super().__init__(master)
-        ttk.Label(self).pack()
-        ttk.Label(self, text='Search Payment Page', font=("Bahnschrift", 16)).pack()
-
-        self.table_view = ttk.Frame()
-        self.table_view.pack()
-        self.create_page()
-
-        ttk.Button(self, text="Refresh", command=self.show_payment_data).pack(anchor=tk.E, pady=5)
-
-    def create_page(self):
-
-        # Search By Frame
-        self.search_by_frame = ttk.LabelFrame(self, text='Search By')
-        self.search_by_frame.pack(pady=5, expand=True)
-
-        # contain the treeview!
-        self.table_by_frame = ttk.Frame(self)
-        self.table_by_frame.pack()
+   def __init__(self, master):
+       super().__init__(master)
+       ttk.Label(self).pack()
+       ttk.Label(self, text='Search Payment Page', font=("Bahnschrift", 16)).pack()
 
 
-        menu_list = ['', 'email', 'payment_date', 'payment_amount']
+       self.table_view = ttk.Frame()
+       self.table_view.pack()
+       self.create_page()
 
-        oMenuWidth = len(max(menu_list, key=len))
 
-        self.clicked = tk.StringVar()
-        self.clicked.set(menu_list[0])
+       ttk.Button(self, text="Refund", command=self.issue_refund).pack(anchor=tk.W, pady=5)
+       ttk.Button(self, text="Verify", command=self.verify_payment).pack(anchor=tk.W, pady=5)
+       ttk.Button(self, text='Submit', command=self.process_camper_payments).pack(pady=10, anchor=tk.E)
 
-        field_drop = ttk.OptionMenu(self.search_by_frame, self.clicked, *menu_list)
-        field_drop.config(width=oMenuWidth)
-        field_drop.grid(row=0, column=0)
+   def create_page(self):
+       # Search By Frame
+       self.search_by_frame = ttk.LabelFrame(self, text='Search By')
+       self.search_by_frame.pack(pady=5, expand=True)
 
-        self.field_value = ttk.Entry(self.search_by_frame, width=30)
-        self.field_value.grid(row=0, column=1)
 
-        ttk.Button(self.search_by_frame, text="Search", command=self.show_payment_data).grid(row=0, column=2)
+       # contain the treeview!
+       self.table_by_frame = ttk.Frame(self)
+       self.table_by_frame.pack()
 
-        # Table view - to display the search result
-        columns = ("Transaction_id", 'Email', "Payment Date", "Payment Amount")
-        self.tree_view = ttk.Treeview(self.table_by_frame, show='headings',
-                                      selectmode='browse', columns=columns)
 
-        self.tree_view.column("Transaction_id", width=100, anchor='center')
-        self.tree_view.heading("Transaction_id", text="Transaction_id")
+       menu_list = ['', 'email', 'payment_date', 'payment_amount']
 
-        for item in columns[1:]:
-            self.tree_view.column(item, width=130, anchor='center')
-            self.tree_view.heading(item, text=item)
 
-        self.tree_view.pack(side = "left", fill=tk.BOTH, expand=True)
+       oMenuWidth = len(max(menu_list, key=len))
 
-        # add a scrollbar
-        scrollbar = ttk.Scrollbar(self.table_by_frame, orient=tk.VERTICAL, command=self.tree_view.yview)
-        self.tree_view.configure(yscroll=scrollbar.set)
-        scrollbar.pack(side= "right", fill ='y')
 
-    def show_payment_data(self):
-        # delete the old records!
-        for _ in map(self.tree_view.delete, self.tree_view.get_children("")):
-            pass
+       self.clicked = tk.StringVar()
+       self.clicked.set(menu_list[0])
 
-        db = DatabaseUti()
 
-        field = self.clicked.get()
-        field_value = self.field_value.get()
+       field_drop = ttk.OptionMenu(self.search_by_frame, self.clicked, *menu_list)
+       field_drop.config(width=oMenuWidth)
+       field_drop.grid(row=0, column=0)
 
-        if len(field_value) == 0:
-            records = db.query_table("payments", "*")
-            print(records)
-            index = 0
-            for record in records[::-1]:
-                rowid = record[0]
-                email = record[1]
-                p_date = record[2]
-                p_amount = record[3]
-                self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
 
-        else:
-            conditions = field + "='" + field_value + "'"
-            records = db.query_table_with_condition("payments", "*", conditions)
-            if records == False:
-                tk.messagebox.showerror('Warning!',
-                                        "This record doesn't exist!")
-            else:
-                index = 0
-                for record in records[::-1]:
-                    rowid = record[0]
-                    email = record[1]
-                    p_date = record[2]
-                    p_amount = record[3]
-                    print(record)
-                    self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
+       self.field_value = ttk.Entry(self.search_by_frame, width=30)
+       self.field_value.grid(row=0, column=1)
+
+
+       ttk.Button(self.search_by_frame, text="Search", command=self.show_payment_data).grid(row=0, column=2)
+
+
+       # Table view - to display the search result
+       columns = ("Transaction_id", 'Emai', "Payment Date", "Payment Amount")
+       self.tree_view = ttk.Treeview(self.table_by_frame, show='headings',
+                                     selectmode='browse', columns=columns)
+
+
+       self.tree_view.column("Transaction_id", width=100, anchor='center')
+       self.tree_view.heading("Transaction_id", text="Transaction_id")
+
+
+       for item in columns[1:]:
+           self.tree_view.column(item, width=130, anchor='center')
+           self.tree_view.heading(item, text=item)
+
+
+       self.tree_view.pack(side="left", fill=tk.BOTH, expand=True)
+
+
+       # add a scrollbar
+       scrollbar = ttk.Scrollbar(self.table_by_frame, orient=tk.VERTICAL, command=self.tree_view.yview)
+       self.tree_view.configure(yscroll=scrollbar.set)
+       scrollbar.pack(side="right", fill='y')
+
+   def process_camper_payments(self)::
+       db = DatabaseUti()
+       required_values = [self.Email.get(), self.PaymentDate.get_date(), self.PaymentAmount.get()]
+
+       # Check if any required fields are empty
+       if '' in required_values:
+           tk.messagebox.showerror('Warning!',
+                                   "Please complete all the required information")
+       else:
+           # Check if camper exists
+           conditions = f"Email = '{self.Email.get()}' AND PaymentDate = '{self.PaymentDate.get_date()}' AND PaymentAmount = '{self.PaymentAmount.get()}'"
+           result = db.query_table_with_condition("payments", "*", conditions)
+           if result:
+               tk.messagebox.showerror('Error!',
+                                       "This Payment is already processed")
+               self.clear_payment_data()
+           else:
+               # Insert new payment data into the table
+               values = (None, self.Email.get(), self.PaymentDate.get_date(), self.PaymentAmount.get())
+               status = db.insert_one_record("payments", values)
+               if status == False:
+                   tk.messagebox.showerror('Error!',
+                                           "Failed to process Payment")
+                   self.clear_payment_data()
+               else:
+                   tk.messagebox.showinfo('Successful!',
+                                          "The Payment has been successfully processed")
+                   self.clear_payment_data()
+
+   def issue_refund(self):
+       item = self.tree_view.selection()[0]
+       values = self.tree_view.item(item, "values")
+       transaction_id = values[0]
+       email = values[1]
+       p_amount = values[3]
+
+       if messagebox.askyesno("Confirm", f"Do you want to refund {email} the amount of {p_amount}?"):
+           db = DatabaseUti()
+           db.update_payment_status(transaction_id, "Refunded")
+           messagebox.showinfo("Success", "Refund Issued.")
+           self.show_payment_data()
+
+   def show_payment_data(self):
+       # delete the old records!
+       for _ in map(self.tree_view.delete, self.tree_view.get_children("")):
+           pass
+
+
+       db = DatabaseUti()
+
+
+       field = self.clicked.get()
+       field_value = self.field_value.get()
+
+
+       if len(field_value) == 0:
+           records = db.query_table("payments", "*")
+           print(records)
+           index = 0
+           for record in records[::-1]:
+               rowid = record[0]
+               email = record[1]
+               p_date = record[2]
+               p_amount = record[3]
+               self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
+
+
+       else:
+           conditions = field + "='" + field_value + "'"
+           records =  db.query_table("payments", "*", conditions)
+       if len(records) == 0:
+           messagebox.showerror("Error", "No matching record found!")
+       else:
+           for record in records:
+               rowid = record[0]
+               email = record[1]
+               p_date = record[2]
+               p_amount = record[3]
+               self.tree_view.insert("", "", values = (rowid, email, p_date, p_amount))
+
+   def verify_payment(self, email):
+       db = DatabaseUti()
+
+       # check if there's any pending payment for this email
+       records = db.query_table("payments", "*", f"email='{email}'")
+       if len(records) > 0:
+           messagebox.showwarning("Payment Pending", f"There's a pending payment for {email}!")
+           return False
+
+           # check if the latest payment is between 8 and 2 months before the camp start date
+           records = db.query_table("payments", "*", f"email='{email}'", order_by="payment_date DESC", limit=1)
+           if len(records) == 0:
+               messagebox.showwarning("No Payment Found", f"No payment found for {email}!")
+               return False
+
+               latest_payment_date = datetime.strptime(records[0][2], '%Y-%m-%d')
+               camp_start_date = datetime.strptime('2023-07-01', '%Y-%m-%d')
+               delta = camp_start_date - latest_payment_date
+               if delta.days < 60 or delta.days > 240:
+                   messagebox.showwarning("Payment Not Timely",
+                                          f"Payment for {email} was made on {latest_payment_date.date()}, "
+                                          f"which is not between 8 and 2 months prior to the camp start date!")
+                   return False
+
+               # all checks passed
+               return True
+
 
 
 class AboutFrame(ttk.Frame):
