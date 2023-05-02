@@ -249,8 +249,8 @@ class DatabaseUti:
         return age        
     
     def insert_camper_bunkhouse(self):
-        # Get camper info from the database
-        camper_info = self.query_camper_info()
+        # Get unassigned camper info from the database
+        camper_info = self.get_unassigned_campers()
 
         # Sort the campers by age and gender
         sorted_campers = sorted(camper_info, key=lambda camper: (DatabaseUti.compute_age(camper[2]), camper[1]))
@@ -275,6 +275,16 @@ class DatabaseUti:
                 cur.execute("INSERT INTO camper_bunkhouse (CamperID, BunkhouseID, BunkhouseUseStartDate, BunkhouseUseEndDate) VALUES (?, ?, ?, ?)",
                             (camper_id, bunkhouse_id, "2023-07-01", "2023-07-15"))
   
+    def get_unassigned_campers(self):
+        with self.create_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("""
+            SELECT c.CamperID, c.Gender, c.Birthday
+            FROM camper c
+            LEFT JOIN camper_bunkhouse cb ON c.CamperID = cb.CamperID
+            WHERE cb.CamperID IS NULL
+            """)
+            return cur.fetchall()
     def get_bunkhouse_assignments(self, bunkhouse_id):
             with self.create_connection() as conn:
                 cur = conn.cursor()
@@ -410,6 +420,24 @@ class DatabaseUti:
         update_query = f"UPDATE {table_name} SET {', '.join(update_fields)} WHERE {conditions}"
         try:
             c.execute(update_query, update_values)
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    def remove_camper_from_bunkhouse(self, camper_id):
+        with self.create_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM camper_bunkhouse WHERE CamperID = ?", (camper_id,))
+    
+    def remove_all_camper_assignments(self):
+        conn = self.create_connection()
+        c = conn.cursor()
+
+        try:
+            c.execute("DELETE FROM camper_bunkhouse")
             conn.commit()
             conn.close()
             return True

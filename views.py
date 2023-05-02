@@ -782,7 +782,20 @@ class AssignmentFrame(ttk.Frame):
             self.load_bunkhouse_data(bunkhouse_id, self.tree_views[i])
 
         ttk.Button(self, text="Auto Assign Camper", command=self.auto_assign_camper).pack(pady=5)
+        self.camper_id_label = ttk.Label(self, text="CamperID")
+        self.camper_id_label.pack(pady=(10, 0))
+        self.camper_id_entry = ttk.Entry(self)
+        self.camper_id_entry.pack(pady=5)
+        ttk.Button(self, text="Remove Camper", command=self.remove_camper).pack(pady=5)
+        ttk.Button(self, text="Remove All Campers", command=self.remove_all_campers).pack(pady=5)
 
+    def remove_all_campers(self):
+        self.db.remove_all_camper_assignments()
+        for i in range(6):
+            bunkhouse_id = i + 1
+            self.tree_views[i].delete(*self.tree_views[i].get_children())
+            self.load_bunkhouse_data(bunkhouse_id, self.tree_views[i])
+            
     def load_bunkhouse_data(self, bunkhouse_id, tree_view):
         records = self.db.get_bunkhouse_assignments(bunkhouse_id)
         for record in records:
@@ -804,7 +817,21 @@ class AssignmentFrame(ttk.Frame):
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
+    
+    def remove_camper(self):
+        camper_id = self.camper_id_entry.get()
+        if camper_id:
+            self.db.remove_camper_from_bunkhouse(camper_id)
 
+            # Refresh the bunkhouse data displayed in the tree views
+            for i in range(6):
+                bunkhouse_id = i + 1
+                self.tree_views[i].delete(*self.tree_views[i].get_children())
+                self.load_bunkhouse_data(bunkhouse_id, self.tree_views[i])
+
+            # Clear the camper ID entry
+            self.camper_id_entry.delete(0, 'end')
+            
 class TribeFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
