@@ -844,7 +844,12 @@ class TribeFrame(ttk.Frame):
 
             self.load_tribe_data(tribe_id, self.tree_views[i])
 
+        cancel_tab = ttk.Frame(self.notebook)
+        self.notebook.add(cancel_tab, text="Cancellation")
+        self.create_page()
+
         ttk.Button(self, text="Auto Assign Camper", command=self.aggin_campers).pack(pady=5)
+
 
     def load_tribe_data(self, tribe_id, tree_view):
         records = self.db.get_tribe_assignments(tribe_id)
@@ -864,3 +869,86 @@ class TribeFrame(ttk.Frame):
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
+
+    def create_page(self):
+        # Search By Frame
+        self.search_by_frame = ttk.LabelFrame(self, text='Search By')
+        self.search_by_frame.pack(pady=5, expand=True)
+
+        # contain the treeview!
+        self.table_by_frame = ttk.Frame(self)
+        self.table_by_frame.pack()
+
+        menu_list = ['', 'CamperID', 'FirstName', 'LastName', 'Gender']
+
+        oMenuWidth = len(max(menu_list, key=len))
+
+        self.clicked = tk.StringVar()
+        self.clicked.set(menu_list[0])
+
+        field_drop = ttk.OptionMenu(self.search_by_frame, self.clicked, *menu_list)
+        field_drop.config(width=oMenuWidth)
+        field_drop.grid(row=0, column=0)
+
+        self.field_value = ttk.Entry(self.search_by_frame, width=30)
+        self.field_value.grid(row=0, column=1)
+
+        ttk.Button(self.search_by_frame, text="Search", command=self.show_camper_data).grid(row=0, column=2)
+        ttk.Button(self.search_by_frame, text="Remove", command=self.remove_camper_tribe).grid(row=0, column=3,pady=5)
+
+        # Table view - to display the search result
+        columns = ('CamperID', 'FirstName', 'LastName')
+
+        # Create the tree_view first
+        self.tree_view = ttk.Treeview(self.table_by_frame, show='headings', selectmode='browse', columns=columns)
+
+        self.tree_view.column("CamperID", width=100, anchor='center')
+        self.tree_view.heading("CamperID", text="CamperID")
+
+        for item in columns[1:]:
+            self.tree_view.column(item, width=130, anchor='center')
+            self.tree_view.heading(item, text=item)
+
+        # add a horizontal scrollbar
+        scrollbar_horizontal = ttk.Scrollbar(self.table_by_frame, orient=tk.HORIZONTAL, command=self.tree_view.xview)
+        scrollbar_horizontal.pack(side="bottom", fill='x')
+
+        # add a vertical scrollbar
+        scrollbar_vertical = ttk.Scrollbar(self.table_by_frame, orient=tk.VERTICAL, command=self.tree_view.yview)
+        scrollbar_vertical.pack(side="right", fill='y')
+
+        self.tree_view.configure(xscrollcommand=scrollbar_horizontal.set, yscrollcommand=scrollbar_vertical.set)
+
+        self.tree_view.pack(side="left", fill=tk.BOTH, expand=True)
+
+    def show_camper_data(self):
+        for _ in map(self.tree_view.delete, self.tree_view.get_children("")):
+            pass
+
+        db = DatabaseUti()
+
+        field = self.clicked.get()
+        field_value = self.field_value.get()
+
+        if len(field_value) == 0:
+            records = db.query_table("camper", "*")
+            print(records)
+            index = 0
+            for record in records[::-1]:
+                self.tree_view.insert("", index + 1, values=record)
+
+        else:
+            conditions = field + "='" + field_value + "'"
+            records = db.query_table_with_condition("camper", "*", conditions)
+            if records == False:
+                tk.messagebox.showerror('Warning!',
+                                        "This record doesn't exist!")
+            else:
+                index = 0
+                for record in records[::-1]:
+                    print(record)
+                    self.tree_view.insert("", index + 1, values=record)
+
+
+    def remove_camper_tribe(self):
+        pass

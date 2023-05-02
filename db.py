@@ -360,7 +360,7 @@ class DatabaseUti:
             with self.create_connection() as conn:
                 cur = conn.cursor()
                 num_tribes = 6
-                tribe_capacity = 6
+                tribe_capacity = 12
                 for tribe_id in range(1, num_tribes + 1):
                     num_male_campers = min(len(male_campers), tribe_capacity // 2)
                     num_female_campers = min(len(female_campers), tribe_capacity // 2)
