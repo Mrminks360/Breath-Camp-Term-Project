@@ -885,6 +885,7 @@ class TribeFrame(ttk.Frame):
             tree_view.insert("", "end", values=(record[0], record[1], record[2], record[4], age))
 
     def aggin_campers(self):
+        print("aggin_campers function called") 
         self.db.insert_camper_tribe()
         for i in range(6):
             tribe_id = i + 1
