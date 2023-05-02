@@ -670,7 +670,7 @@ class SearchFrame(ttk.Frame):
        self.tree_view.configure(yscroll=scrollbar.set)
        scrollbar.pack(side="right", fill='y')
 
-   def process_camper_payments(self)::
+   def process_camper_payments(self):
        db = DatabaseUti()
        required_values = [self.Email.get(), self.PaymentDate.get_date(), self.PaymentAmount.get()]
 
