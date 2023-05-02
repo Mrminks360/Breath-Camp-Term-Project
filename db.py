@@ -343,11 +343,11 @@ class DatabaseUti:
 
         # Group campers by friends value
         friends_dict = {}
-        for camper in camper_info:
-            friends_val = camper[3]  # Assuming friends column is in index 3
-            if friends_val not in friends_dict:
-                friends_dict[friends_val] = []
-            friends_dict[friends_val].append(camper[0])  # Append camper id
+        #for camper in camper_info:
+         #   friends_val = camper[3]  # Assuming friends column is in index 3
+          #  if friends_val not in friends_dict:
+           #     friends_dict[friends_val] = []
+            #friends_dict[friends_val].append(camper[0])  # Append camper id
 
         # Sort campers by age and gender within each friend group
         for friends_group in friends_dict.values():
