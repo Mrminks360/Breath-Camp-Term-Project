@@ -178,7 +178,6 @@ class UpdateCamper(ttk.Frame):
         super().__init__(master)
         ttk.Label(self).pack()
         ttk.Label(self, text='Camper Information', font=("Bahnschrift", 16)).pack()
-        ttk.Label(self).pack()
         
         self.FirstName = tk.StringVar()
         self.LastName = tk.StringVar()
