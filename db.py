@@ -15,6 +15,7 @@ from sql import (CREATE_CAMPER_TABLE_SQL, CREATE_INVOICE_TABLE_SQL, CREATE_BUNKH
                  CREATE_CAMPER_BUNKHOUSE_TABLE_SQL, CREATE_TRIBE_TABLE_SQL, CREATE_CAMPER_TRIBE_TABLE_SQL,
                  CREATE_LOGIN_TABLE_SQL)
 from datetime import datetime, date, timedelta
+import random
 
 class DatabaseUti:
     def __init__(self, db_name = "Gila.db"):
@@ -346,6 +347,61 @@ class DatabaseUti:
         self.cursor.execute("SELECT COUNT(*) FROM Camper WHERE Gender='Female' AND TribeID=?", (tribe_id,))
         count = self.cursor.fetchone()[0]
         return count
+
+    def insert_camper_tribe(self):
+        camper_info = self.query_camper_info()
+
+        # Group campers by friends value
+        friends_dict = {}
+        for camper in camper_info:
+            friends_val = camper[3]  # Assuming friends column is in index 3
+            if friends_val not in friends_dict:
+                friends_dict[friends_val] = []
+            friends_dict[friends_val].append(camper[0])  # Append camper id
+
+        # Sort campers by age and gender within each friend group
+        for friends_group in friends_dict.values():
+            sorted_campers = sorted([camper for camper in camper_info if camper[0] in friends_group],
+                                    key=lambda camper: (DatabaseUti.compute_age(camper[2]), camper[1]))
+            female_campers = [camper[0] for camper in sorted_campers if camper[1] == "Female"]
+            male_campers = [camper[0] for camper in sorted_campers if camper[1] == "Male"]
+
+            # Insert campers into tribes
+            with self.create_connection() as conn:
+                cur = conn.cursor()
+                num_tribes = 6
+                tribe_capacity = 6
+                for tribe_id in range(1, num_tribes + 1):
+                    num_male_campers = min(len(male_campers), tribe_capacity // 2)
+                    num_female_campers = min(len(female_campers), tribe_capacity // 2)
+                    if num_male_campers < tribe_capacity // 2:
+                        num_female_campers += min(len(female_campers) - num_female_campers,
+                                                  tribe_capacity - num_male_campers - num_female_campers)
+                    for i in range(num_male_campers):
+                        camper_id = male_campers.pop(0)
+                        cur.execute(
+                            "INSERT INTO camper_tribe (CamperID, TribeID, TribeUseStartDate, TribeUseEndDate) VALUES (?, ?, ?, ?)",
+                            (camper_id, tribe_id, "2023-07-01", "2023-07-15"))
+                    for i in range(num_female_campers):
+                        camper_id = female_campers.pop(0)
+                        cur.execute(
+                            "INSERT INTO camper_tribe (CamperID, TribeID, TribeUseStartDate, TribeUseEndDate) VALUES (?, ?, ?, ?)",
+                            (camper_id, tribe_id, "2023-07-01", "2023-07-15"))
+                    if not male_campers and not female_campers:
+                        break
+
+    def get_tribe_assignments(self, tribe_id):
+            with self.create_connection() as conn:
+                cur = conn.cursor()
+                cur.execute("""
+                    SELECT c.CamperID, c.FirstName, c.LastName, c.Birthday, c.Gender
+                    FROM camper c
+                    JOIN camper_tribe ct ON c.CamperID = ct.CamperID
+                    WHERE ct.TribeID = ?
+                    """, (tribe_id,))
+                records = cur.fetchall()
+            return records
+
 
 
 db = DatabaseUti()
