@@ -3,15 +3,16 @@ from tkinter import ttk, messagebox
 from db import DatabaseUti
 from tkcalendar import Calendar, DateEntry
 from datetime import date, datetime
+from collections import defaultdict
 
 import tkinter as tk
 
-class RegistrationFrame(ttk.Frame):
+class ManageFrame(ttk.Frame):
 
     def __init__(self, master):
         super().__init__(master)
 
-        ttk.Label(self, text='Camper Registration and Management', font=("Bahnschrift", 16)).pack()
+        ttk.Label(self, text='Camper Management', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
 
         # Create the search table
@@ -27,8 +28,8 @@ class RegistrationFrame(ttk.Frame):
         self.update_tab = UpdateCamper(self.notebook)
 
         # Add tabs to the notebook
-        self.notebook.add(self.register_tab, text='Register Camper')
-        self.notebook.add(self.update_tab, text='Update Camper')
+        self.notebook.add(self.register_tab, text='Register', )
+        self.notebook.add(self.update_tab, text='Update')
 
 class RegisterCamper(ttk.Frame):
 
@@ -178,8 +179,6 @@ class UpdateCamper(ttk.Frame):
         super().__init__(master)
         ttk.Label(self).pack()
         ttk.Label(self, text='Camper Information', font=("Bahnschrift", 16)).pack()
-        ttk.Label(self).pack()
-
         
         self.FirstName = tk.StringVar()
         self.LastName = tk.StringVar()
@@ -194,6 +193,7 @@ class UpdateCamper(ttk.Frame):
         self.Friends = tk.StringVar()
         self.CamperID = tk.StringVar()
         self.AcceptanceNotice = tk.BooleanVar()
+        self.IsCancelled = tk.BooleanVar()
 
         self.create_page()
         ttk.Button(self, text='Submit', command=self.update_camper_data).pack(side="right", pady=10, padx=5,
@@ -208,15 +208,15 @@ class UpdateCamper(ttk.Frame):
         ttk.Entry(self.info, textvariable=self.CamperID, width=20).grid(row=0, column=1, pady=5, sticky=tk.W)
         
         # First row
-        ttk.Label(self.info, text='First Name(*): ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='First Name: ', font=("Calibri 12")).grid(row=1, column=0, pady=5, sticky=tk.W)
         ttk.Entry(self.info, textvariable=self.FirstName, width=20).grid(row=1, column=1, pady=5, sticky=tk.W)
 
-        ttk.Label(self.info, text='Last Name(*): ', font=("Calibri 12")).grid(row=1, column=2, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Last Name: ', font=("Calibri 12")).grid(row=1, column=2, pady=5, sticky=tk.W)
         ttk.Entry(self.info, textvariable=self.LastName, width=20).grid(row=1, column=3, pady=5, sticky=tk.W)
 
         # Second Row
         # gender menu list
-        ttk.Label(self.info, text='Gender(*): ', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Gender: ', font=("Calibri 12")).grid(row=2, column=0, pady=5, sticky=tk.W)
         menu_list = ['', 'Female', 'Male']
 
         self.Gender.set(menu_list[0])
@@ -267,10 +267,11 @@ class UpdateCamper(ttk.Frame):
         ttk.Label(self.info, text='Check-In: ', font=("Calibri 12")).grid(row=6, column=0, pady=5, sticky=tk.W)
         ttk.Checkbutton(self.info, variable=self.CheckedIn, onvalue=True, offvalue=False).grid(row=6, column=1, pady=5, sticky=tk.W)
 
-        # Seventh Row
-        ttk.Label(self.info, text='Acceptance Notice: ', font=("Calibri 12")).grid(row=7, column=0, pady=5, sticky=tk.W)
-        ttk.Checkbutton(self.info, variable=self.AcceptanceNotice, onvalue=True, offvalue=False).grid(row=7, column=1, pady=5, sticky=tk.W)
+        ttk.Label(self.info, text='Acceptance Notice: ', font=("Calibri 12")).grid(row=6, column=2, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.AcceptanceNotice, onvalue=True, offvalue=False).grid(row=6, column=3, pady=5, sticky=tk.W)
 
+        ttk.Label(self.info, text='Cancel: ', font=("Calibri 12")).grid(row=0, column=2, pady=5, sticky=tk.W)
+        ttk.Checkbutton(self.info, variable=self.IsCancelled, onvalue=True, offvalue=False).grid(row=0, column=3, pady=5, sticky=tk.W)
 
         def populate_fields(self):
             db = DatabaseUti()
@@ -297,7 +298,7 @@ class UpdateCamper(ttk.Frame):
 
         # Get the updated values from form fields
         kwargs = {}
-        
+
         if self.FirstName.get():
             kwargs["FirstName"] = self.FirstName.get()
         if self.LastName.get():
@@ -326,6 +327,15 @@ class UpdateCamper(ttk.Frame):
                 kwargs["AcceptedNoticeDate"] = date.today().strftime("%Y-%m-%d")
             else:
                 kwargs["AcceptedNoticeDate"] = None
+        if self.IsCancelled.get() is not None:
+            kwargs["IsCancelled"] = self.IsCancelled.get()
+            if self.IsCancelled.get():
+                kwargs["CancellationDate"] = date.today().strftime("%Y-%m-%d")
+                kwargs["RefundPercentage"] = self.calculate_refund(kwargs["AcceptedNoticeDate"],
+                                                                   kwargs["CancellationDate"])
+            else:
+                kwargs["CancellationDate"] = None
+                kwargs["RefundPercentage"] = None
 
         status = db.update_camper_checkin(camper_id, **kwargs)
         if status == False:
@@ -350,6 +360,28 @@ class UpdateCamper(ttk.Frame):
         self.Friends.set('')
         self.AcceptanceNotice.set(False)
 
+    def calculate_refund(self, accept_date, cancel_date):
+        if not accept_date:
+            return 0.9
+        else:
+            accept_year = int(accept_date[0:4])
+            accept_month = int(accept_date[5:7])
+            accept_day = int(accept_date[8:10])
+            cancel_year = int(cancel_date[0:4])
+            cancel_month = int(cancel_date[5:7])
+            cancel_day = int(cancel_date[8:10])
+            accept = date(accept_year, accept_month, accept_day)
+            cancel = date(cancel_year, cancel_month, cancel_day)
+
+            result = (cancel - accept).days//7
+
+            if result <= 3:
+                return 0.9
+            elif result <= 6:
+                return 0.45
+            else:
+                return 0
+
 class CheckinFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
@@ -370,7 +402,9 @@ class CheckinFrame(ttk.Frame):
         self.table_by_frame = ttk.Frame(self)
         self.table_by_frame.pack()
 
-        menu_list = ['', 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice', 'AcceptedNoticeDate']
+        menu_list = ['', 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment',
+                     'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends',
+                     'AcceptedNotice', 'AcceptedNoticeDate', 'IsCancelled', 'CancellationDate', 'RefundPercentage']
 
         oMenuWidth = len(max(menu_list, key=len))
 
@@ -387,7 +421,9 @@ class CheckinFrame(ttk.Frame):
         ttk.Button(self.search_by_frame, text="Search", command=self.show_camper_data).grid(row=0, column=2)
 
         # Table view - to display the search result
-        columns = ("CamperID", 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment', 'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice', 'AcceptedNoticeDate')
+        columns = ("CamperID", 'FirstName', 'LastName', 'Birthday', 'Gender', 'ArrivalDate', 'Equipment',
+                   'DepartureDate', 'CompletedForm', 'CheckedIn', 'MailingAddress', 'Friends', 'AcceptedNotice',
+                   'AcceptedNoticeDate', 'IsCancelled', 'CancellationDate', 'RefundPercentage')
 
         # Create the tree_view first
         self.tree_view = ttk.Treeview(self.table_by_frame, show='headings', selectmode='browse', columns=columns)
@@ -563,108 +599,185 @@ class PaymentFrame(ttk.Frame):
             self.p_amount.set("")
 
 class SearchFrame(ttk.Frame):
-    def __init__(self, master):
-        super().__init__(master)
-        ttk.Label(self).pack()
-        ttk.Label(self, text='Search Payment Page', font=("Bahnschrift", 16)).pack()
-
-        self.table_view = ttk.Frame()
-        self.table_view.pack()
-        self.create_page()
-
-        ttk.Button(self, text="Refresh", command=self.show_payment_data).pack(anchor=tk.E, pady=5)
-
-    def create_page(self):
-
-        # Search By Frame
-        self.search_by_frame = ttk.LabelFrame(self, text='Search By')
-        self.search_by_frame.pack(pady=5, expand=True)
-
-        # contain the treeview!
-        self.table_by_frame = ttk.Frame(self)
-        self.table_by_frame.pack()
+   def __init__(self, master):
+       super().__init__(master)
+       ttk.Label(self).pack()
+       ttk.Label(self, text='Search Payment Page', font=("Bahnschrift", 16)).pack()
 
 
-        menu_list = ['', 'email', 'payment_date', 'payment_amount']
+       self.table_view = ttk.Frame()
+       self.table_view.pack()
+       self.create_page()
 
-        oMenuWidth = len(max(menu_list, key=len))
 
-        self.clicked = tk.StringVar()
-        self.clicked.set(menu_list[0])
+       ttk.Button(self, text="Refund", command=self.issue_refund).pack(anchor=tk.W, pady=5)
+       ttk.Button(self, text="Verify", command=self.verify_payment).pack(anchor=tk.W, pady=5)
+       ttk.Button(self, text='Submit', command=self.process_camper_payments).pack(pady=10, anchor=tk.E)
 
-        field_drop = ttk.OptionMenu(self.search_by_frame, self.clicked, *menu_list)
-        field_drop.config(width=oMenuWidth)
-        field_drop.grid(row=0, column=0)
+   def create_page(self):
+       # Search By Frame
+       self.search_by_frame = ttk.LabelFrame(self, text='Search By')
+       self.search_by_frame.pack(pady=5, expand=True)
 
-        self.field_value = ttk.Entry(self.search_by_frame, width=30)
-        self.field_value.grid(row=0, column=1)
 
-        ttk.Button(self.search_by_frame, text="Search", command=self.show_payment_data).grid(row=0, column=2)
+       # contain the treeview!
+       self.table_by_frame = ttk.Frame(self)
+       self.table_by_frame.pack()
 
-        # Table view - to display the search result
-        columns = ("Transaction_id", 'Email', "Payment Date", "Payment Amount")
-        self.tree_view = ttk.Treeview(self.table_by_frame, show='headings',
-                                      selectmode='browse', columns=columns)
 
-        self.tree_view.column("Transaction_id", width=100, anchor='center')
-        self.tree_view.heading("Transaction_id", text="Transaction_id")
+       menu_list = ['', 'email', 'payment_date', 'payment_amount']
 
-        for item in columns[1:]:
-            self.tree_view.column(item, width=130, anchor='center')
-            self.tree_view.heading(item, text=item)
 
-        self.tree_view.pack(side = "left", fill=tk.BOTH, expand=True)
+       oMenuWidth = len(max(menu_list, key=len))
 
-        # add a scrollbar
-        scrollbar = ttk.Scrollbar(self.table_by_frame, orient=tk.VERTICAL, command=self.tree_view.yview)
-        self.tree_view.configure(yscroll=scrollbar.set)
-        scrollbar.pack(side= "right", fill ='y')
 
-    def show_payment_data(self):
-        # delete the old records!
-        for _ in map(self.tree_view.delete, self.tree_view.get_children("")):
-            pass
+       self.clicked = tk.StringVar()
+       self.clicked.set(menu_list[0])
 
-        db = DatabaseUti()
 
-        field = self.clicked.get()
-        field_value = self.field_value.get()
+       field_drop = ttk.OptionMenu(self.search_by_frame, self.clicked, *menu_list)
+       field_drop.config(width=oMenuWidth)
+       field_drop.grid(row=0, column=0)
 
-        if len(field_value) == 0:
-            records = db.query_table("payments", "*")
-            print(records)
-            index = 0
-            for record in records[::-1]:
-                rowid = record[0]
-                email = record[1]
-                p_date = record[2]
-                p_amount = record[3]
-                self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
 
-        else:
-            conditions = field + "='" + field_value + "'"
-            records = db.query_table_with_condition("payments", "*", conditions)
-            if records == False:
-                tk.messagebox.showerror('Warning!',
-                                        "This record doesn't exist!")
-            else:
-                index = 0
-                for record in records[::-1]:
-                    rowid = record[0]
-                    email = record[1]
-                    p_date = record[2]
-                    p_amount = record[3]
-                    print(record)
-                    self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
+       self.field_value = ttk.Entry(self.search_by_frame, width=30)
+       self.field_value.grid(row=0, column=1)
 
-class DeleteFrame(ttk.Frame):
-    
-    def __init__(self, master):
-        super().__init__(master)
-        ttk.Label(self).pack()
-        ttk.Label(self, text = 'Delete Page', font=("Bahnschrift", 16)).pack()
-        ttk.Label(self).pack()
-        ttk.Label(self, text = "Waiting for future development!").pack()
+
+       ttk.Button(self.search_by_frame, text="Search", command=self.show_payment_data).grid(row=0, column=2)
+
+
+       # Table view - to display the search result
+       columns = ("Transaction_id", 'Emai', "Payment Date", "Payment Amount")
+       self.tree_view = ttk.Treeview(self.table_by_frame, show='headings',
+                                     selectmode='browse', columns=columns)
+
+
+       self.tree_view.column("Transaction_id", width=100, anchor='center')
+       self.tree_view.heading("Transaction_id", text="Transaction_id")
+
+
+       for item in columns[1:]:
+           self.tree_view.column(item, width=130, anchor='center')
+           self.tree_view.heading(item, text=item)
+
+
+       self.tree_view.pack(side="left", fill=tk.BOTH, expand=True)
+
+
+       # add a scrollbar
+       scrollbar = ttk.Scrollbar(self.table_by_frame, orient=tk.VERTICAL, command=self.tree_view.yview)
+       self.tree_view.configure(yscroll=scrollbar.set)
+       scrollbar.pack(side="right", fill='y')
+
+   def process_camper_payments(self):
+       db = DatabaseUti()
+       required_values = [self.Email.get(), self.PaymentDate.get_date(), self.PaymentAmount.get()]
+
+       # Check if any required fields are empty
+       if '' in required_values:
+           tk.messagebox.showerror('Warning!',
+                                   "Please complete all the required information")
+       else:
+           # Check if camper exists
+           conditions = f"Email = '{self.Email.get()}' AND PaymentDate = '{self.PaymentDate.get_date()}' AND PaymentAmount = '{self.PaymentAmount.get()}'"
+           result = db.query_table_with_condition("payments", "*", conditions)
+           if result:
+               tk.messagebox.showerror('Error!',
+                                       "This Payment is already processed")
+               self.clear_payment_data()
+           else:
+               # Insert new payment data into the table
+               values = (None, self.Email.get(), self.PaymentDate.get_date(), self.PaymentAmount.get())
+               status = db.insert_one_record("payments", values)
+               if status == False:
+                   tk.messagebox.showerror('Error!',
+                                           "Failed to process Payment")
+                   self.clear_payment_data()
+               else:
+                   tk.messagebox.showinfo('Successful!',
+                                          "The Payment has been successfully processed")
+                   self.clear_payment_data()
+
+   def issue_refund(self):
+       item = self.tree_view.selection()[0]
+       values = self.tree_view.item(item, "values")
+       transaction_id = values[0]
+       email = values[1]
+       p_amount = values[3]
+
+       if messagebox.askyesno("Confirm", f"Do you want to refund {email} the amount of {p_amount}?"):
+           db = DatabaseUti()
+           db.update_payment_status(transaction_id, "Refunded")
+           messagebox.showinfo("Success", "Refund Issued.")
+           self.show_payment_data()
+
+   def show_payment_data(self):
+       # delete the old records!
+       for _ in map(self.tree_view.delete, self.tree_view.get_children("")):
+           pass
+
+
+       db = DatabaseUti()
+
+
+       field = self.clicked.get()
+       field_value = self.field_value.get()
+
+
+       if len(field_value) == 0:
+           records = db.query_table("payments", "*")
+           print(records)
+           index = 0
+           for record in records[::-1]:
+               rowid = record[0]
+               email = record[1]
+               p_date = record[2]
+               p_amount = record[3]
+               self.tree_view.insert("", index + 1, values=(rowid, email, p_date, p_amount))
+
+
+       else:
+           conditions = field + "='" + field_value + "'"
+           records =  db.query_table("payments", "*", conditions)
+       if len(records) == 0:
+           messagebox.showerror("Error", "No matching record found!")
+       else:
+           for record in records:
+               rowid = record[0]
+               email = record[1]
+               p_date = record[2]
+               p_amount = record[3]
+               self.tree_view.insert("", "", values = (rowid, email, p_date, p_amount))
+
+   def verify_payment(self, email):
+       db = DatabaseUti()
+
+       # check if there's any pending payment for this email
+       records = db.query_table("payments", "*", f"email='{email}'")
+       if len(records) > 0:
+           messagebox.showwarning("Payment Pending", f"There's a pending payment for {email}!")
+           return False
+
+           # check if the latest payment is between 8 and 2 months before the camp start date
+           records = db.query_table("payments", "*", f"email='{email}'", order_by="payment_date DESC", limit=1)
+           if len(records) == 0:
+               messagebox.showwarning("No Payment Found", f"No payment found for {email}!")
+               return False
+
+               latest_payment_date = datetime.strptime(records[0][2], '%Y-%m-%d')
+               camp_start_date = datetime.strptime('2023-07-01', '%Y-%m-%d')
+               delta = camp_start_date - latest_payment_date
+               if delta.days < 60 or delta.days > 240:
+                   messagebox.showwarning("Payment Not Timely",
+                                          f"Payment for {email} was made on {latest_payment_date.date()}, "
+                                          f"which is not between 8 and 2 months prior to the camp start date!")
+                   return False
+
+               # all checks passed
+               return True
+
+
 
 class AboutFrame(ttk.Frame):
     def __init__(self, master):
@@ -673,8 +786,10 @@ class AboutFrame(ttk.Frame):
         ttk.Label(self, text = 'About Page', font=("Bahnschrift", 16)).pack()
         ttk.Label(self).pack()
         ttk.Label(self, text = 'About Product: Created by Tkinter').pack()
-        ttk.Label(self, text = 'About Author: Rachel Z').pack()
+        ttk.Label(self, text = 'About Authors: Maison Anderson, Santiago Londono, Andrew Minkswinberg, and Jamal Warren-March').pack()
         ttk.Label(self, text = "All Rights Reserved for the use of UT ITM360").pack()
+        #self.image = tk.PhotoImage(file=r"C:\Users\SantiagoLondono\Documents\GitHub\Breath-Camp-Term-Project\CatCrying.jpg")
+        #ttk.Label(self, image=self.image).pack()
 
 class AssignmentFrame(ttk.Frame):
     def __init__(self, master):
@@ -732,6 +847,67 @@ class AssignmentFrame(ttk.Frame):
             self.load_bunkhouse_data(bunkhouse_id, self.tree_views[i])
 
     def calculate_age(self, birthdate):
+        birthdate = datetime.strptime(birthdate, "%Y-%m-%d")
+        today = datetime.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        return age
+
+
+class TribeFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.db = DatabaseUti()
+
+        ttk.Label(self, text='Tribe Assignment Page', font=("Bahnschrift", 16)).pack()
+
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        self.tree_views = [None] * 6
+        self.tribe_tabs = [None] * 6
+        tribe_names = ["Torchbearers", "Firestarters", "Island Pioneers", "Marooned Marvels", "Castaway Conquerors", "Expedition Explorers"]
+
+        for i in range(6):
+            tribe_id = tribe_names[i]
+            self.tribe_tabs[i] = ttk.Frame(self.notebook)
+            self.notebook.add(self.tribe_tabs[i], text=f"{tribe_id}")
+
+            columns = ("CamperID", "FirstName", "LastName", "Gender", "Age", "Friends")
+
+            self.tree_views[i] = ttk.Treeview(self.tribe_tabs[i], show='headings', selectmode='browse', columns=columns)
+
+            for col in columns:
+                self.tree_views[i].column(col, width=130, anchor='center')
+                self.tree_views[i].heading(col, text=col)
+
+            scrollbar_horizontal = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.HORIZONTAL,
+                                                 command=self.tree_views[i].xview)
+            scrollbar_horizontal.pack(side="bottom", fill='x')
+
+            scrollbar_vertical = ttk.Scrollbar(self.tribe_tabs[i], orient=tk.VERTICAL, command=self.tree_views[i].yview)
+            scrollbar_vertical.pack(side="right", fill='y')
+
+            self.tree_views[i].configure(xscrollcommand=scrollbar_horizontal.set, yscrollcommand=scrollbar_vertical.set)
+            self.tree_views[i].pack(side="left", fill=tk.BOTH, expand=True)
+
+            self.load_tribe_data(tribe_id, self.tree_views[i])
+
+        ttk.Button(self, text="Auto Assign Camper", command=self.aggin_campers).pack(pady=5)
+
+    def load_tribe_data(self, tribe_id, tree_view):
+        records = self.db.get_tribe_assignments(tribe_id)
+        for record in records:
+            age = self.get_camper_age(record[3])
+            tree_view.insert("", "end", values=(record[0], record[1], record[2], record[4], age))
+
+    def aggin_campers(self):
+        self.db.insert_camper_tribe()
+        for i in range(6):
+            tribe_id = i + 1
+            self.tree_views[i].delete(*self.tree_views[i].get_children())
+            self.load_tribe_data(tribe_id, self.tree_views[i])
+
+    def get_camper_age(self, birthdate):
         birthdate = datetime.strptime(birthdate, "%Y-%m-%d")
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
