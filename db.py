@@ -319,6 +319,7 @@ class DatabaseUti:
         except Exception as e:
             print(e)
         conn.close()
+  
     def remove_camper_from_tribe(self, camper_id):
         try:
             self.cursor.execute("UPDATE Camper SET TribeID = NULL WHERE CamperID = ?", (camper_id,))

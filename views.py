@@ -777,8 +777,6 @@ class SearchFrame(ttk.Frame):
                # all checks passed
                return True
 
-
-
 class AboutFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
@@ -851,7 +849,6 @@ class AssignmentFrame(ttk.Frame):
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
-
 
 class TribeFrame(ttk.Frame):
     def __init__(self, master):
