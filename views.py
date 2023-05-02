@@ -827,4 +827,3 @@ class TribeFrame(ttk.Frame):
         today = datetime.today()
         age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
         return age
-
