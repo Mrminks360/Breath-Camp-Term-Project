@@ -894,7 +894,8 @@ class TribeFrame(ttk.Frame):
         self.field_value.grid(row=0, column=1)
 
         ttk.Button(self.search_by_frame, text="Search", command=self.show_camper_data).grid(row=0, column=2)
-        ttk.Button(self.search_by_frame, text="Remove", command=self.remove_camper_tribe).grid(row=0, column=3,pady=5)
+        ttk.Button(self.search_by_frame, text="Remove Camper", command=self.remove_camper).grid(row=0, column=3,pady=5)
+        ttk.Button(self.search_by_frame, text="Remove All Campers", command=self.remove_all_campers).grid(row=0, column=4, pady=5)
 
         # Table view - to display the search result
         columns = ('CamperID', 'FirstName', 'LastName')
@@ -949,6 +950,21 @@ class TribeFrame(ttk.Frame):
                     print(record)
                     self.tree_view.insert("", index + 1, values=record)
 
+    def remove_all_campers(self):
+        self.db.remove_all_camper_assignments()
+        for i in range(6):
+            tribe_id = i + 1
+            self.tree_views[i].delete(*self.tree_views[i].get_children())
+            self.load_tribe_data(tribe_id, self.tree_views[i])
 
-    def remove_camper_tribe(self):
-        pass
+    def remove_camper(self):
+        camper_id = self.camper_id_entry.get()
+        if camper_id:
+            self.db.remove_camper_from_tribe(camper_id)
+            # Refresh the tribe data displayed in the tree views
+            for i in range(6):
+                tribe_id = i + 1
+                self.tree_views[i].delete(*self.tree_views[i].get_children())
+                self.load_tribe_data(tribe_id, self.tree_views[i])
+            # Clear the camper ID entry
+            self.camper_id_entry.delete(0, 'end')
