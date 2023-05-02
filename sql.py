@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS invoice (
     Amount REAL,
     Paid BOOLEAN,
     PaymentDate DATE,
+    RefundAmount REAL,
     FOREIGN KEY (CamperID) REFERENCES camper (CamperID)
 );
 """

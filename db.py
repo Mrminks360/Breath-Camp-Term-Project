@@ -392,15 +392,39 @@ class DatabaseUti:
                 records = cur.fetchall()
             return records
 
+    def update_records(self, table_name, updated_data, conditions):
+        conn = self.create_connection()
+        c = conn.cursor()
+
+        update_fields = []
+        update_values = []
+
+        for field, value in updated_data.items():
+            if value is not None:
+                update_fields.append(f"{field} = ?")
+                update_values.append(value)
+
+        if not update_fields:
+            return False
+
+        update_query = f"UPDATE {table_name} SET {', '.join(update_fields)} WHERE {conditions}"
+        try:
+            c.execute(update_query, update_values)
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
 db = DatabaseUti()
 
 #  To Recreate database move the data from the data folder into the same folder as db.py or copy the path and put into the functions below.
-#db.insert_one_record("logins", ("admin", "1234"))
-#db.insert_camper_data_from_file("FemaleCampers.txt")
-#db.insert_camper_data_from_file("MaleCampers.txt")
-#db.insert_bunkhouse_data_from_file("Bunkhouse.txt")
-#db.insert_tribe_data_from_file("Tribe.txt")
+# db.insert_one_record("logins", ("admin", "1234"))
+# db.insert_camper_data_from_file("FemaleCampers.txt")
+# db.insert_camper_data_from_file("MaleCampers.txt")
+# db.insert_bunkhouse_data_from_file("Bunkhouse.txt")
+# db.insert_tribe_data_from_file("Tribe.txt")
 
 
 
